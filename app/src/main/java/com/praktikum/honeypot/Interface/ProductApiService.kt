@@ -3,7 +3,7 @@ import com.praktikum.honeypot.Data.Product
 import retrofit2.Call
 import retrofit2.http.*
 
-interface StockApiService {
+interface ProductApiService {
     @GET("/api/product/")
     fun getProducts(): Call<List<Product>> // Mendapatkan semua stok
 
