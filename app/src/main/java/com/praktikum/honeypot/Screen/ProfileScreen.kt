@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,18 +23,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.praktikum.honeypot.Factory.AppViewModelFactory
-import com.praktikum.honeypot.ViewModel.ProfileViewModel
 import com.praktikum.honeypot.R
+import com.praktikum.honeypot.ViewModel.ProfileViewModel
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(navController: NavController) {
     val context = LocalContext.current
-    val profileViewModel: ProfileViewModel = viewModel(
-        factory = AppViewModelFactory(context)
-    )
+    val profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory(context))
     val profile = profileViewModel.profile.collectAsState()
+
+    // Listen for refresh triggers from EditScreen
+    val refreshState = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<Boolean>("refreshProfile")
+        ?.observeAsState(initial = false)
+
+    // Trigger profile fetch if refresh is true
+    if (refreshState?.value == true) {
+        profileViewModel.fetchProfile()
+        navController.currentBackStackEntry?.savedStateHandle?.set("refreshProfile", false)
+    }
 
     // Custom DM Sans Font
     val dmSansFont = FontFamily(
@@ -67,8 +79,8 @@ fun ProfileScreen() {
             contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(100.dp)
-                .clip(CircleShape) // Clip the image into a circle
-                .background(Color.Gray, CircleShape), // Optional: Background color behind the image
+                .clip(CircleShape)
+                .background(Color.Gray, CircleShape),
             contentScale = ContentScale.Crop
         )
 
@@ -100,22 +112,20 @@ fun ProfileScreen() {
             ProfileDetailItem(
                 label = "Full Name",
                 value = it.full_name,
-                fontFamily = dmSansFont
+                fontFamily = dmSansFont,
+                onClick = { navController.navigate("editScreen/fullname/${it.full_name}") }
             )
             ProfileDetailItem(
                 label = "Username",
                 value = it.username,
-                fontFamily = dmSansFont
+                fontFamily = dmSansFont,
+                onClick = { navController.navigate("editScreen/username/${it.username}") }
             )
             ProfileDetailItem(
                 label = "Contact",
-                value = "*********",
-                fontFamily = dmSansFont
-            )
-            ProfileDetailItem(
-                label = "Password",
-                value = "*********",
-                fontFamily = dmSansFont
+                value = it.contact,
+                fontFamily = dmSansFont,
+                onClick = { navController.navigate("editScreen/contact/${it.contact}") }
             )
         }
 
@@ -126,7 +136,10 @@ fun ProfileScreen() {
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .height(55.dp)
-                .background(Color(0xFFE84949), RoundedCornerShape(8.dp)),
+                .background(Color(0xFFE84949), RoundedCornerShape(8.dp))
+                .clickable {
+                    navController.navigate("updateProfile")
+                },
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -134,23 +147,23 @@ fun ProfileScreen() {
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
-                fontFamily = dmSansFont,
-                modifier = Modifier.clickable { /* Navigate to Update Profile */ }
+                fontFamily = dmSansFont
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp)) // Add space above the navbar
+        Spacer(modifier = Modifier.height(16.dp)) // Space above the navbar
     }
 }
 
 @Composable
-fun ProfileDetailItem(label: String, value: String, fontFamily: FontFamily) {
+fun ProfileDetailItem(label: String, value: String, fontFamily: FontFamily, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(84.dp)
             .background(Color(0xFF43766C), RoundedCornerShape(8.dp))
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Label
@@ -160,9 +173,8 @@ fun ProfileDetailItem(label: String, value: String, fontFamily: FontFamily) {
             color = Color.White,
             fontFamily = fontFamily
         )
-
-        // Value
         Spacer(modifier = Modifier.weight(1f))
+        // Value
         Text(
             text = value,
             fontSize = 16.sp,
@@ -170,14 +182,13 @@ fun ProfileDetailItem(label: String, value: String, fontFamily: FontFamily) {
             color = Color.White,
             fontFamily = fontFamily
         )
-
+        Spacer(modifier = Modifier.width(16.dp))
         // Arrow Icon
-        Spacer(modifier = Modifier.width(16.dp)) // Space for the arrow
         Image(
-            painter = painterResource(id = R.drawable.arrow_right), // Reference to arrow-right.png
+            painter = painterResource(id = R.drawable.arrow_right),
             contentDescription = "Arrow Icon",
             modifier = Modifier.size(16.dp)
         )
     }
-    Spacer(modifier = Modifier.height(8.dp)) // Space between rows
+    Spacer(modifier = Modifier.height(8.dp))
 }

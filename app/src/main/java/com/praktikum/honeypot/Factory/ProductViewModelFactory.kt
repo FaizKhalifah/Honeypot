@@ -7,6 +7,7 @@ import com.praktikum.honeypot.ViewModel.ProductViewModel
 import com.praktikum.honeypot.ViewModel.ProfileViewModel
 
 class AppViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(ProductViewModel::class.java) -> {
