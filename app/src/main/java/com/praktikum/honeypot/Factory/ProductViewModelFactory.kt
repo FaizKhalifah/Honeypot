@@ -4,13 +4,18 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.praktikum.honeypot.ViewModel.ProductViewModel
+import com.praktikum.honeypot.ViewModel.ProfileViewModel
 
-class ProductViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+class AppViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ProductViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return ProductViewModel(context) as T
+        return when {
+            modelClass.isAssignableFrom(ProductViewModel::class.java) -> {
+                ProductViewModel(context) as T
+            }
+            modelClass.isAssignableFrom(ProfileViewModel::class.java) -> {
+                ProfileViewModel(context) as T
+            }
+            else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

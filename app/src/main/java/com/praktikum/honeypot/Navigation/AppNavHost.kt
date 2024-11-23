@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.praktikum.honeypot.Screen.LoginScreen
 import com.praktikum.honeypot.Screen.MainScreen
 import com.praktikum.honeypot.Screen.RegisterScreen
+import com.praktikum.honeypot.Screen.ProfileScreen
 
 @Composable
 fun AppNavHost() {
@@ -31,6 +32,9 @@ fun AppNavHost() {
         // Halaman Utama
         composable("main") {
             MainScreen() // Implementasi halaman utama Anda
+        }
+        composable("profile") {
+            ProfileScreen()
         }
     }
 }
