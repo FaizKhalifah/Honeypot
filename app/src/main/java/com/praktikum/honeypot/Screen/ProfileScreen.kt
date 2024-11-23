@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -66,9 +67,8 @@ fun ProfileScreen() {
             contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(100.dp)
-                .background(Color.Gray, CircleShape)
-                .padding(2.dp)
-                .background(Color.White, CircleShape),
+                .clip(CircleShape) // Clip the image into a circle
+                .background(Color.Gray, CircleShape), // Optional: Background color behind the image
             contentScale = ContentScale.Crop
         )
 
