@@ -5,14 +5,15 @@ import okhttp3.Response
 
 class AuthInterceptor(private val preferencesHelper: PreferencesHelper) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val token = preferencesHelper.getToken() // Ambil token dari PreferencesHelper
+        val token = preferencesHelper.getToken() // Get token from preferences
         val request = chain.request().newBuilder()
 
         if (token != null) {
-            // Sisipkan token ke header Authorization
+            // Attach token to the Authorization header
             request.addHeader("Authorization", "Bearer $token")
         }
 
         return chain.proceed(request.build())
     }
 }
+

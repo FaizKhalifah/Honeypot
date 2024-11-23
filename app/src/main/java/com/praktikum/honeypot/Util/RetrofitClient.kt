@@ -3,6 +3,7 @@ package com.praktikum.honeypot.Util
 import android.content.Context
 import com.praktikum.honeypot.Interface.AuthApiService
 import com.praktikum.honeypot.Interface.ProductApiService
+import com.praktikum.honeypot.Interface.ProfileApiService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -37,4 +38,8 @@ object RetrofitClient {
     fun getAuthApiService(context: Context): AuthApiService {
         return create(context).create(AuthApiService::class.java)
     }
+    fun getProfileApiService(context: Context): ProfileApiService {
+        return create(context).create(ProfileApiService::class.java)
+    }
+
 }
