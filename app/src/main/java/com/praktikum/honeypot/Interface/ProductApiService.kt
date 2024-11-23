@@ -5,14 +5,14 @@ import retrofit2.http.*
 
 interface ProductApiService {
     @GET("/api/product/")
-    fun getProducts(): Call<List<Product>> // Mendapatkan semua stok
+    suspend fun getProducts(): List<Product> // Mendapatkan semua stok
 
     @POST("/api/product/add")
-    fun addProduct(@Body newProduct: Product): Call<Product> // Menambahkan stok baru
+    suspend fun addProduct(@Body newProduct: Product): Call<Product> // Menambahkan stok baru
 
     @PUT("/api/product/update/{id}")
-    fun updateProduct(@Path("id") id: Int, @Body updatedProduct: Product): Call<Product> // Memperbarui stok
+    suspend fun updateProduct(@Path("id") id: Int, @Body updatedProduct: Product): Call<Product> // Memperbarui stok
 
     @DELETE("/api/product/{id}")
-    fun deleteProduct(@Path("id") id: Int): Call<Void> //Delete product
+    suspend fun deleteProduct(@Path("id") id: Int): Call<Void> //Delete product
 }
