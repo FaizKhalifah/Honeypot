@@ -28,5 +28,25 @@ class ProductViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
+
+    fun addProduct(newProduct: Product, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val productApiService = RetrofitClient.getProductApiService(context)
+                val response = productApiService.addProduct(newProduct) // Tidak perlu .execute()
+
+                if (response.isSuccessful) {
+                    onSuccess()
+                    loadProducts() // Refresh data produk
+                } else {
+                    onError("Failed to add product: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
+            }
+        }
+    }
+
+
 }
 
