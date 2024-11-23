@@ -5,7 +5,5 @@ data class Product(
     val name:String,
     val description:String,
     val stock:Int,
-    val price_per_unit:Int,
-    val createdAt:String,
-    val updatedAt:String
+    val price_per_unit:Int
 )

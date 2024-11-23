@@ -24,7 +24,16 @@ fun MainScreen() {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("home") { HomeScreen() }
-            composable("product") { ProductScreen() }
+            composable("product") {
+                ProductScreen(
+                    onNavigateToAddProduct = { navController.navigate("addProduct") }
+                )
+            }
+            composable("addProduct") {
+                AddProductScreen(
+                    onProductAdded = { navController.popBackStack() }
+                )
+            }
             composable("report") { ReportScreen() }
             composable("partner") { PartnerScreen() }
             composable("profile") { ProfileScreen(navController) }
