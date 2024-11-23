@@ -13,7 +13,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,26 +28,49 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.praktikum.honeypot.Data.Product
 import com.praktikum.honeypot.ViewModel.ProductViewModel
-
 import androidx.compose.ui.res.painterResource
 import com.praktikum.honeypot.Factory.ProductViewModelFactory
 import com.praktikum.honeypot.R
 
 @Composable
-fun ProductScreen() {
+fun ProductScreen(
+    onNavigateToAddProduct: () -> Unit // Fungsi navigasi untuk Add Product
+) {
     val context = LocalContext.current
     val productViewModel: ProductViewModel = viewModel(
         factory = ProductViewModelFactory(context)
     )
     val products by productViewModel.products.collectAsState()
 
-    // Menampilkan daftar produk
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        items(products) { product ->
-            ProductCard(product = product)
+    // Gunakan Scaffold untuk menyediakan FloatingActionButton
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onNavigateToAddProduct() }, // Navigasi ke Add Product
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White
+            ) {
+                // Ikon "Tambah"
+                Image(
+                    painter = painterResource(R.drawable.add_circle), // Pastikan ada ikon ic_add
+                    contentDescription = "Add Product"
+                )
+            }
+        }
+    ) { paddingValues ->
+        // LazyColumn untuk daftar produk
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            items(products) { product ->
+                ProductCard(product = product)
+            }
         }
     }
 }
+
 
 @Composable
 fun ProductCard(product: Product) {
