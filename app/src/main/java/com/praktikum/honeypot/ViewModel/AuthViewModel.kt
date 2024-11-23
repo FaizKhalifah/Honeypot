@@ -7,8 +7,10 @@ import com.praktikum.honeypot.Data.RegisterRequest
 import com.praktikum.honeypot.Data.RegisterResponse
 import com.praktikum.honeypot.Util.PreferencesHelper
 import com.praktikum.honeypot.Util.RetrofitClient
+
 import retrofit2.Call
 import retrofit2.Response
+
 
 class AuthViewModel(private val context: Context) {
     private val preferencesHelper = PreferencesHelper(context)
@@ -38,8 +40,8 @@ class AuthViewModel(private val context: Context) {
             })
     }
 
-    fun register(name: String, password: String,full_name:String,contact:String , onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val registerRequest = RegisterRequest(name,password, full_name,contact)
+    fun register(username: String, password: String,full_name:String,contact:String , onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val registerRequest = RegisterRequest(username,password, full_name,contact)
         RetrofitClient.authApiService.register(registerRequest)
             .enqueue(object : retrofit2.Callback<RegisterResponse> {
                 override fun onResponse(
