@@ -127,19 +127,22 @@ fun ProfileScreen(navController: NavController) {
                 fontFamily = dmSansFont,
                 onClick = { navController.navigate("editScreen/contact/${it.contact}") }
             )
+            // Password Detail Box
+            ProfileDetailItem(
+                label = "Password",
+                value = "*********", // Masked password
+                fontFamily = dmSansFont,
+                onClick = { /* Navigate to edit password if needed */ }
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Update Profile Button
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .height(55.dp)
-                .background(Color(0xFFE84949), RoundedCornerShape(8.dp))
-                .clickable {
-                    navController.navigate("updateProfile")
-                },
+                .background(Color(0xFFE84949), RoundedCornerShape(8.dp)), // Red background
             contentAlignment = Alignment.Center
         ) {
             Text(
