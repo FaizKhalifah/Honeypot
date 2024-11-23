@@ -28,14 +28,14 @@ import com.praktikum.honeypot.Data.Product
 import com.praktikum.honeypot.ViewModel.ProductViewModel
 
 import androidx.compose.ui.res.painterResource
-import com.praktikum.honeypot.Factory.ProductViewModelFactory
+import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.R
 
 @Composable
 fun ProductScreen() {
     val context = LocalContext.current
     val productViewModel: ProductViewModel = viewModel(
-        factory = ProductViewModelFactory(context)
+        factory = AppViewModelFactory(context)
     )
     val products by productViewModel.products.collectAsState()
 
