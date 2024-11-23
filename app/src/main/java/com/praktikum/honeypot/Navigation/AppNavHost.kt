@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.praktikum.honeypot.Screen.LoginScreen
+import com.praktikum.honeypot.Screen.MainScreen
 import com.praktikum.honeypot.Screen.RegisterScreen
 
 @Composable
@@ -15,19 +16,22 @@ fun AppNavHost() {
         // Halaman Login
         composable("login") {
             LoginScreen(
-                onNavigateToRegister = {
-                    navController.navigate("register")
-                }
+                onNavigateToRegister = { navController.navigate("register") },
+                onLoginSuccess = { navController.navigate("main") { popUpTo("login") { inclusive = true } } }
             )
         }
 
         // Halaman Register
         composable("register") {
             RegisterScreen(
-                onNavigateToLogin = {
-                    navController.popBackStack() // Kembali ke halaman login
-                }
+                onNavigateToMain = { navController.navigate("main") { popUpTo("login") { inclusive = true } } }
             )
+        }
+
+        // Halaman Utama
+        composable("main") {
+            MainScreen() // Implementasi halaman utama Anda
         }
     }
 }
+

@@ -5,7 +5,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://your-nodejs-server-url"
+    private const val BASE_URL = "https://jowo-jogorogo.vercel.app/"
 
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
