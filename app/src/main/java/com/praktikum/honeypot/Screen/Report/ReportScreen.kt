@@ -1,4 +1,4 @@
-package com.praktikum.honeypot.Screen
+package com.praktikum.honeypot.Screen.Report
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

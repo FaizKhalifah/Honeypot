@@ -5,8 +5,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,6 +13,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.Navigation.BottomNavigationBar
+import com.praktikum.honeypot.Screen.Home.HomeScreen
+import com.praktikum.honeypot.Screen.Partner.PartnerScreen
+import com.praktikum.honeypot.Screen.Product.AddProductScreen
+import com.praktikum.honeypot.Screen.Product.ProductScreen
+import com.praktikum.honeypot.Screen.Profile.EditScreen
+import com.praktikum.honeypot.Screen.Profile.ProfileScreen
+import com.praktikum.honeypot.Screen.Report.ReportScreen
 import com.praktikum.honeypot.ViewModel.ProductViewModel
 
 @Composable

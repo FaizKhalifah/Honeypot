@@ -1,4 +1,4 @@
-package com.praktikum.honeypot.Screen
+package com.praktikum.honeypot.Screen.Product
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column

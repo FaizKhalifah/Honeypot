@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 class ProductViewModel(private val context: Context) : ViewModel() {
     private val _products = MutableStateFlow<List<Product>>(emptyList())
     val products: StateFlow<List<Product>> = _products
+    private val _selectedProduct = MutableStateFlow<Product?>(null)
+    val selectedProduct: StateFlow<Product?> = _selectedProduct
 
     init {
         loadProducts()
@@ -27,6 +29,15 @@ class ProductViewModel(private val context: Context) : ViewModel() {
                 _products.value = emptyList() // Tangani error
             }
         }
+    }
+
+    fun selectProduct(product: Product) {
+        _selectedProduct.value = product
+    }
+
+    // Fungsi untuk menghapus produk yang dipilih
+    fun clearSelectedProduct() {
+        _selectedProduct.value = null
     }
 
     fun addProduct(newProduct: Product, onSuccess: () -> Unit, onError: (String) -> Unit) {

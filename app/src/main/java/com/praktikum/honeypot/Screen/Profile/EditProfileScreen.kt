@@ -1,4 +1,4 @@
-package com.praktikum.honeypot.Screen
+package com.praktikum.honeypot.Screen.Profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
