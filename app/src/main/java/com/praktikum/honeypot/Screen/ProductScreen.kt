@@ -47,7 +47,7 @@ fun ProductScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onNavigateToAddProduct() }, // Navigasi ke Add Product
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = Color.White,
                 contentColor = Color.White
             ) {
                 // Ikon "Tambah"
