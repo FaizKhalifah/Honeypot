@@ -12,8 +12,8 @@ interface ProductApiService {
     suspend fun addProduct(@Body newProduct: Product): Response<Unit> // Menambahkan stok baru
 
     @PUT("/api/product/update/{id}")
-    suspend fun updateProduct(@Path("id") id: Int, @Body updatedProduct: Product): Call<Product> // Memperbarui stok
+    suspend fun updateProduct(@Path("id") id: Int, @Body updatedProduct: Product): Response<Unit> // Memperbarui stok
 
     @DELETE("/api/product/{id}")
-    suspend fun deleteProduct(@Path("id") id: Int): Call<Void> //Delete product
+    suspend fun deleteProduct(@Path("id") id: Int): Response<Unit>  //Delete product
 }

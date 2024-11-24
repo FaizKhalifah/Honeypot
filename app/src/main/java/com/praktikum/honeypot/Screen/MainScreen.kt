@@ -16,6 +16,7 @@ import com.praktikum.honeypot.Navigation.BottomNavigationBar
 import com.praktikum.honeypot.Screen.Home.HomeScreen
 import com.praktikum.honeypot.Screen.Partner.PartnerScreen
 import com.praktikum.honeypot.Screen.Product.AddProductScreen
+import com.praktikum.honeypot.Screen.Product.EditProductScreen
 import com.praktikum.honeypot.Screen.Product.ProductScreen
 import com.praktikum.honeypot.Screen.Profile.EditScreen
 import com.praktikum.honeypot.Screen.Profile.ProfileScreen
@@ -40,9 +41,33 @@ fun MainScreen() {
             composable("home") { HomeScreen() }
             composable("product") {
                 ProductScreen(
-                    onNavigateToAddProduct = { navController.navigate("addProduct") }
+                    onNavigateToAddProduct = { navController.navigate("addProduct") },
+                    onNavigateToEditProduct = { product ->
+                        navController.navigate("editProduct/${product.product_id}")
+                    },
+                    onDeleteProduct = { productId ->
+                        productViewModel.deleteProduct(productId) // Panggil fungsi delete di ViewModel
+                    }
                 )
             }
+
+            composable("editProduct/{productId}") { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
+                val product = productViewModel.getProductById(productId) // Ambil data produk berdasarkan ID
+
+                EditProductScreen(
+                    product = product, // Kirim data produk
+                    onSave = { updatedProduct ->
+                        productViewModel.updateProduct(updatedProduct) // Simpan perubahan
+                        navController.navigateUp() // Kembali ke layar sebelumnya
+                    },
+                    onCancel = {
+                        navController.navigateUp() // Kembali tanpa menyimpan
+                    }
+                )
+            }
+
+
             composable("addProduct") {
                 AddProductScreen(
                     viewModel = productViewModel,

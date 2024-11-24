@@ -1,6 +1,7 @@
 package com.praktikum.honeypot.ViewModel
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.praktikum.honeypot.Data.Product
@@ -57,6 +58,49 @@ class ProductViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
+
+    fun getProductById(productId: Int): Product {
+        return products.value.find { it.product_id == productId }
+            ?: throw IllegalArgumentException("Product not found")
+    }
+
+
+    fun updateProduct(updatedProduct: Product) {
+        viewModelScope.launch {
+            val productApiService = RetrofitClient.getProductApiService(context)
+
+            // Kirim permintaan ke API untuk memperbarui produk
+            val response = productApiService.updateProduct(updatedProduct.product_id, updatedProduct)
+            if (response.isSuccessful) {
+                // Perbarui data lokal
+                _products.value = _products.value.map {
+                    if (it.product_id == updatedProduct.product_id) updatedProduct else it
+                }
+            }
+        }
+    }
+
+
+
+    fun deleteProduct(productId: Int) {
+        viewModelScope.launch {
+            try {
+                val productApiService = RetrofitClient.getProductApiService(context)
+
+                val response = productApiService.deleteProduct(productId) // API call
+                if (response.isSuccessful) {
+                    val currentList = products.value.toMutableList()
+                    currentList.removeIf { it.product_id == productId } // Hapus dari daftar lokal
+                } else {
+                    Log.e("ProductViewModel", "Delete failed with code: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("ProductViewModel", "Error deleting product: ${e.message}")
+            }
+        }
+    }
+
+
 
 
 }
