@@ -32,7 +32,9 @@ import com.praktikum.honeypot.Screen.Product.ProductCard
 import com.praktikum.honeypot.Screen.Product.ProductDetail
 
 @Composable
-fun PartnerScreen(){
+fun PartnerScreen(
+    onNavigateToAddProduct: () -> Unit,
+){
     val context = LocalContext.current
     val partnerViewModel: PartnerViewModel = viewModel(
         factory = AppViewModelFactory(context)
@@ -42,7 +44,9 @@ fun PartnerScreen(){
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {  },
+                onClick = {
+                    onNavigateToAddProduct()
+                },
                 containerColor = Color.White,
                 contentColor = Color.White
             ) {
