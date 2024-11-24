@@ -4,12 +4,12 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.praktikum.honeypot.Data.Owner
+import com.praktikum.honeypot.Interface.ApiResponse
 import com.praktikum.honeypot.Util.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import retrofit2.await
 import retrofit2.awaitResponse
 
 class ProfileViewModel(context: Context) : ViewModel() {
@@ -25,16 +25,24 @@ class ProfileViewModel(context: Context) : ViewModel() {
     fun fetchProfile() {
         viewModelScope.launch {
             try {
-                val response = profileApiService.getProfile().await()
-                _profile.value = response
+                val response = profileApiService.getProfile().awaitResponse()
+                if (response.isSuccessful) {
+                    _profile.value = response.body()
+                } else {
+                    _profile.value = null
+                }
             } catch (e: Exception) {
-                // Handle error (e.g., logging)
                 _profile.value = null
             }
         }
     }
 
-    fun updateProfile(fieldType: String, value: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun updateProfile(
+        fieldType: String,
+        value: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         val updateData = when (fieldType.lowercase()) {
             "fullname", "full_name" -> mapOf("full_name" to value)
             "contact" -> mapOf("contact" to value)
@@ -47,19 +55,51 @@ class ProfileViewModel(context: Context) : ViewModel() {
                 try {
                     val response = profileApiService.updateProfile(updateData).awaitResponse()
                     if (response.isSuccessful) {
-                        fetchProfile() // Fetch updated profile data after a successful update
+                        fetchProfile()
                         onSuccess()
                     } else {
                         onError("Failed to update: ${response.message()}")
                     }
                 } catch (e: HttpException) {
-                    onError("Error: ${e.message}")
+                    onError("HTTP Error: ${e.message}")
                 } catch (e: Exception) {
-                    onError("Error: ${e.message}")
+                    onError("Unexpected Error: ${e.message}")
                 }
             }
         } else {
             onError("Invalid update field")
+        }
+    }
+
+    fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val passwordData = mapOf(
+            "currentPassword" to currentPassword,
+            "newPassword" to newPassword
+        )
+
+        viewModelScope.launch {
+            try {
+                val response = profileApiService.changePassword(passwordData).awaitResponse()
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body != null && body.message == "Password updated successfully") {
+                        onSuccess()
+                    } else {
+                        onError("Unexpected server response: ${body?.message ?: "Unknown error"}")
+                    }
+                } else {
+                    onError("Failed to change password: ${response.message()}")
+                }
+            } catch (e: HttpException) {
+                onError("HTTP Error: ${e.message}")
+            } catch (e: Exception) {
+                onError("Unexpected Error: ${e.message}")
+            }
         }
     }
 }

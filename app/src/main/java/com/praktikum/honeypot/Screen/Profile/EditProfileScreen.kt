@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,31 +48,36 @@ fun EditScreen(navController: NavController, fieldType: String, fieldValue: Stri
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        // Back Arrow and Centered Title
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            contentAlignment = Alignment.Center
         ) {
             // Back Arrow
             Image(
                 painter = painterResource(id = R.drawable.arrow_back),
                 contentDescription = "Back",
                 modifier = Modifier
+                    .align(Alignment.CenterStart)
                     .size(24.dp)
                     .clickable { navController.popBackStack() }
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
-            // Title
+            // Centered Title
             Text(
                 text = "Edit ${fieldType.replaceFirstChar { it.uppercase() }}",
                 fontFamily = dmSansFont,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Editable TextField
         TextField(
@@ -90,15 +96,17 @@ fun EditScreen(navController: NavController, fieldType: String, fieldValue: Stri
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .height(55.dp)
-                .background(Color(0xFF43766C), RoundedCornerShape(8.dp))
+                .background(Color(0xFF43766C), RoundedCornerShape(16.dp))
                 .clickable {
                     coroutineScope.launch {
                         profileViewModel.updateProfile(
                             fieldType = fieldType,
                             value = updatedValue.value,
                             onSuccess = {
-                                // Pass a refresh flag to ProfileScreen
-                                navController.previousBackStackEntry?.savedStateHandle?.set("refreshProfile", true)
+                                // Set refresh flag for ProfileScreen
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("refreshProfile", true)
                                 navController.popBackStack()
                             },
                             onError = { errorMessage ->

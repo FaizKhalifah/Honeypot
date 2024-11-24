@@ -1,3 +1,4 @@
+// MainScreen.kt
 package com.praktikum.honeypot.Screen
 
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import com.praktikum.honeypot.Screen.Product.AddProductScreen
 import com.praktikum.honeypot.Screen.Product.EditProductScreen
 import com.praktikum.honeypot.Screen.Product.ProductScreen
 import com.praktikum.honeypot.Screen.Profile.EditScreen
+import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen // Import EditPasswordScreen
 import com.praktikum.honeypot.Screen.Profile.ProfileScreen
 import com.praktikum.honeypot.Screen.Report.ReportScreen
 import com.praktikum.honeypot.ViewModel.ProductViewModel
@@ -46,27 +48,26 @@ fun MainScreen() {
                         navController.navigate("editProduct/${product.product_id}")
                     },
                     onDeleteProduct = { productId ->
-                        productViewModel.deleteProduct(productId) // Panggil fungsi delete di ViewModel
+                        productViewModel.deleteProduct(productId) // Call delete function in ViewModel
                     }
                 )
             }
 
             composable("editProduct/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
-                val product = productViewModel.getProductById(productId) // Ambil data produk berdasarkan ID
+                val product = productViewModel.getProductById(productId) // Fetch product data by ID
 
                 EditProductScreen(
-                    product = product, // Kirim data produk
+                    product = product, // Pass product data
                     onSave = { updatedProduct ->
-                        productViewModel.updateProduct(updatedProduct) // Simpan perubahan
-                        navController.navigateUp() // Kembali ke layar sebelumnya
+                        productViewModel.updateProduct(updatedProduct) // Save changes
+                        navController.navigateUp() // Navigate back
                     },
                     onCancel = {
-                        navController.navigateUp() // Kembali tanpa menyimpan
+                        navController.navigateUp() // Navigate back without saving
                     }
                 )
             }
-
 
             composable("addProduct") {
                 AddProductScreen(
@@ -91,6 +92,10 @@ fun MainScreen() {
                 EditScreen(navController, fieldType, fieldValue)
             }
 
+            // **Add the editPasswordScreen route here**
+            composable("editPasswordScreen") {
+                EditPasswordScreen(navController) // Ensure you have this composable defined
+            }
         }
     }
 }

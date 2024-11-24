@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.praktikum.honeypot.Screen.Profile.EditScreen
 import com.praktikum.honeypot.Screen.Auth.LoginScreen
 import com.praktikum.honeypot.Screen.MainScreen
+import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen
 import com.praktikum.honeypot.Screen.Profile.ProfileScreen
 import com.praktikum.honeypot.Screen.Auth.RegisterScreen
 
@@ -54,5 +55,12 @@ fun AppNavHost() {
             val fieldValue = backStackEntry.arguments?.getString("fieldValue") ?: ""
             EditScreen(navController, fieldType, fieldValue)
         }
+
+        // Edit Password Screen
+        composable("editPasswordScreen") {
+            println("Navigating to EditPasswordScreen")
+            EditPasswordScreen(navController)
+        }
+
     }
 }
