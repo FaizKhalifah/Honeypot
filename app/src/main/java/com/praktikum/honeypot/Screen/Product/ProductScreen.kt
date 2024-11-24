@@ -31,7 +31,9 @@ import com.praktikum.honeypot.R
 
 @Composable
 fun ProductScreen(
-    onNavigateToAddProduct: () -> Unit
+    onNavigateToAddProduct: () -> Unit,
+    onNavigateToEditProduct: (Product) -> Unit,
+    onDeleteProduct: (Int) -> Unit,
 ) {
     val context = LocalContext.current
     val productViewModel: ProductViewModel = viewModel(
@@ -58,7 +60,13 @@ fun ProductScreen(
             // Tampilkan halaman detail produk
             ProductDetail(
                 product = selectedProduct!!,
-                onDismiss = { productViewModel.clearSelectedProduct() }
+                onDismiss = { productViewModel.clearSelectedProduct() },
+                onEdit = { product -> onNavigateToEditProduct(product) },
+                onDelete = { product ->
+                    // Hapus produk dari ViewModel
+                    productViewModel.deleteProduct(product.product_id)
+                    productViewModel.clearSelectedProduct()
+                }
             )
         } else {
             // Tampilkan daftar produk
