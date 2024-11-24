@@ -1,4 +1,4 @@
-package com.praktikum.honeypot.Screen
+package com.praktikum.honeypot.Screen.Profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,19 +35,16 @@ fun ProfileScreen(navController: NavController) {
     val profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory(context))
     val profile = profileViewModel.profile.collectAsState()
 
-    // Listen for refresh triggers from EditScreen
     val refreshState = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.getLiveData<Boolean>("refreshProfile")
         ?.observeAsState(initial = false)
 
-    // Trigger profile fetch if refresh is true
     if (refreshState?.value == true) {
-        profileViewModel.fetchProfile()
+        profileViewModel.fetchProfile() // Fetch updated profile data
         navController.currentBackStackEntry?.savedStateHandle?.set("refreshProfile", false)
     }
 
-    // Custom DM Sans Font
     val dmSansFont = FontFamily(
         Font(R.font.dmsans_regular),
         Font(R.font.dmsans_bold, FontWeight.Bold),
@@ -127,12 +124,14 @@ fun ProfileScreen(navController: NavController) {
                 fontFamily = dmSansFont,
                 onClick = { navController.navigate("editScreen/contact/${it.contact}") }
             )
-            // Password Detail Box
             ProfileDetailItem(
                 label = "Password",
                 value = "*********", // Masked password
                 fontFamily = dmSansFont,
-                onClick = { /* Navigate to edit password if needed */ }
+                onClick = {
+                    println("Navigating to editPasswordScreen")
+                    navController.navigate("editPasswordScreen") // Ensure this matches the route in NavHost
+                }
             )
         }
 
@@ -142,7 +141,7 @@ fun ProfileScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .height(55.dp)
-                .background(Color(0xFFE84949), RoundedCornerShape(8.dp)), // Red background
+                .background(Color(0xFFE84949), RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -157,6 +156,7 @@ fun ProfileScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp)) // Space above the navbar
     }
 }
+
 
 @Composable
 fun ProfileDetailItem(label: String, value: String, fontFamily: FontFamily, onClick: () -> Unit) {
