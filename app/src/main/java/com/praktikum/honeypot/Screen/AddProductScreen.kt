@@ -1,5 +1,6 @@
 package com.praktikum.honeypot.Screen
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,18 +16,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.praktikum.honeypot.Data.Product
+import com.praktikum.honeypot.ViewModel.ProductViewModel
 
 @Composable
-fun AddProductScreen( onProductAdded: () -> Unit) {
+fun AddProductScreen(
+    viewModel: ProductViewModel,
+    navController: NavController
+) {
     var productid by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var stock by remember { mutableStateOf("") }
     var pricePerUnit by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -35,7 +43,7 @@ fun AddProductScreen( onProductAdded: () -> Unit) {
     ) {
         TextField(
             value = productid,
-            onValueChange = { name = it },
+            onValueChange = { productid = it },
             label = { Text("Product Id") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -72,14 +80,27 @@ fun AddProductScreen( onProductAdded: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
+                if (name.isBlank() || description.isBlank() || stock.isBlank() || pricePerUnit.isBlank()) {
+                    Toast.makeText(context, "All fields are required!", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+
                 val newProduct = Product(
-                    product_id = productid.toInt(),
+                    product_id = productid.toIntOrNull() ?: 0,
                     name = name,
                     description = description,
-                    stock = stock.toInt(),
-                    price_per_unit = pricePerUnit.toInt()
+                    stock = stock.toIntOrNull() ?: 0,
+                    price_per_unit = pricePerUnit.toIntOrNull() ?: 0
                 )
-                onProductAdded()
+                viewModel.addProduct(newProduct,
+                    onSuccess = {
+                        Toast.makeText(context, "Product added successfully!", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    },
+                    onError = { errorMessage ->
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                )
             },
             modifier = Modifier.fillMaxWidth()
         ) {
