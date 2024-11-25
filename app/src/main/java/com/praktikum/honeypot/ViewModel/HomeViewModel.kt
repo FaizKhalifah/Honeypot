@@ -39,7 +39,7 @@ class HomeViewModel(context: Context) : ViewModel() {
     private fun loadPartners() {
         viewModelScope.launch {
             try {
-                val partnerList = partnerApiService.getPartners()
+                val partnerList = partnerApiService.getPartner()
                 _partners.value = partnerList
             } catch (e: Exception) {
                 _partners.value = emptyList()

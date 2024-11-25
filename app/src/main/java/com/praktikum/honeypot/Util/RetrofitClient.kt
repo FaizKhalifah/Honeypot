@@ -2,7 +2,6 @@ package com.praktikum.honeypot.Util
 
 import android.content.Context
 import com.praktikum.honeypot.Interface.AuthApiService
-import com.praktikum.honeypot.Interface.PartnerApiService
 import com.praktikum.honeypot.Interface.ProductApiService
 import com.praktikum.honeypot.Interface.ProfileApiService
 import com.praktikum.honeypot.Interface.PartnerApiService
@@ -47,9 +46,6 @@ object RetrofitClient {
 
     fun getProfileApiService(context: Context): ProfileApiService {
         return create(context).create(ProfileApiService::class.java)
-    }
-    fun getPartnerApiService(context: Context): PartnerApiService {
-        return create(context).create(PartnerApiService::class.java)
     }
 
 }
