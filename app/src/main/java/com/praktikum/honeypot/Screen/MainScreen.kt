@@ -16,6 +16,7 @@ import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.Navigation.BottomNavigationBar
 import com.praktikum.honeypot.Screen.Home.HomeScreen
 import com.praktikum.honeypot.Screen.Partner.AddPartnerScreen
+import com.praktikum.honeypot.Screen.Partner.EditPartnerScreen
 import com.praktikum.honeypot.Screen.Partner.PartnerScreen
 import com.praktikum.honeypot.Screen.Product.AddProductScreen
 import com.praktikum.honeypot.Screen.Product.EditProductScreen
@@ -87,13 +88,32 @@ fun MainScreen() {
 
             //PartnerScreens
             composable("partner") { PartnerScreen(
-                onNavigateToAddProduct = { navController.navigate("addPartner") },
+                onNavigateToAddPartner = { navController.navigate("addPartner") },
+                onNavigateToEditPartner = { partner ->
+                    navController.navigate("editPartner/${partner.partner_id}")
+                },
             ) }
 
             composable("addPartner") {
                 AddPartnerScreen(
                     viewModel = partnerViewModel,
                     navController = navController
+                )
+            }
+
+            composable("editPartner/{partnerId}") { backStackEntry ->
+                val partnerId = backStackEntry.arguments?.getString("partnerId")?.toInt() ?: 0
+                val partner = partnerViewModel.getPartnerById(partnerId) // Fetch product data by ID
+
+                EditPartnerScreen(
+                    partner=partner, // Pass product data
+                    onSave = { updatedPartner ->
+                        partnerViewModel.updatePartner(updatedPartner) // Save changes
+                        navController.navigateUp() // Navigate back
+                    },
+                    onCancel = {
+                        navController.navigateUp() // Navigate back without saving
+                    }
                 )
             }
 

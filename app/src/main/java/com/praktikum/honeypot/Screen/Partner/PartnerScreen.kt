@@ -28,12 +28,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
+import com.praktikum.honeypot.Data.Product
 import com.praktikum.honeypot.Screen.Product.ProductCard
 import com.praktikum.honeypot.Screen.Product.ProductDetail
 
 @Composable
 fun PartnerScreen(
-    onNavigateToAddProduct: () -> Unit,
+    onNavigateToAddPartner: () -> Unit,
+    onNavigateToEditPartner: (Partner) -> Unit,
 ){
     val context = LocalContext.current
     val partnerViewModel: PartnerViewModel = viewModel(
@@ -45,7 +47,7 @@ fun PartnerScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    onNavigateToAddProduct()
+                    onNavigateToAddPartner()
                 },
                 containerColor = Color.White,
                 contentColor = Color.White
@@ -58,17 +60,17 @@ fun PartnerScreen(
         }
     ) { paddingValues ->
         if (selectedPartner != null) {
-//            // Tampilkan halaman detail produk
-//            PartnerDetail(
-//                partner = selectedPartner!!,
-//                onDismiss = { productViewModel.clearSelectedProduct() },
-//                onEdit = { product -> onNavigateToEditProduct(product) },
-//                onDelete = { product ->
-//                    // Hapus produk dari ViewModel
-//                    productViewModel.deleteProduct(product.product_id)
-//                    productViewModel.clearSelectedProduct()
-//                }
-//            )
+            // Tampilkan halaman detail produk
+            PartnerDetail(
+                partner = selectedPartner!!,
+                onDismiss = { partnerViewModel.clearSelectedPartner() },
+                onEdit = { partner -> onNavigateToEditPartner(partner) },
+                onDelete = {partner ->
+                    // Hapus produk dari ViewModel
+                    partnerViewModel.deleteProduct(partner.partner_id)
+                    partnerViewModel.clearSelectedPartner()
+                }
+            )
         } else {
             // Tampilkan daftar produk
             LazyColumn(
