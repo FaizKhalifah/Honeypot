@@ -1,4 +1,3 @@
-// MainScreen.kt
 package com.praktikum.honeypot.Screen
 
 import androidx.compose.foundation.layout.padding
@@ -20,18 +19,24 @@ import com.praktikum.honeypot.Screen.Product.AddProductScreen
 import com.praktikum.honeypot.Screen.Product.EditProductScreen
 import com.praktikum.honeypot.Screen.Product.ProductScreen
 import com.praktikum.honeypot.Screen.Profile.EditScreen
-import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen // Import EditPasswordScreen
+import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen
 import com.praktikum.honeypot.Screen.Profile.ProfileScreen
 import com.praktikum.honeypot.Screen.Report.ReportScreen
+import com.praktikum.honeypot.ViewModel.HomeViewModel
 import com.praktikum.honeypot.ViewModel.ProductViewModel
 
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
     val context = LocalContext.current
+
     val productViewModel: ProductViewModel = viewModel(
         factory = AppViewModelFactory(context)
     )
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = AppViewModelFactory(context)
+    )
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) { paddingValues ->
@@ -40,7 +45,9 @@ fun MainScreen() {
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("home") { HomeScreen() }
+            composable("home") {
+                HomeScreen(homeViewModel = homeViewModel)
+            }
             composable("product") {
                 ProductScreen(
                     onNavigateToAddProduct = { navController.navigate("addProduct") },
@@ -48,27 +55,23 @@ fun MainScreen() {
                         navController.navigate("editProduct/${product.product_id}")
                     },
                     onDeleteProduct = { productId ->
-                        productViewModel.deleteProduct(productId) // Call delete function in ViewModel
+                        productViewModel.deleteProduct(productId)
                     }
                 )
             }
-
             composable("editProduct/{productId}") { backStackEntry ->
                 val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
-                val product = productViewModel.getProductById(productId) // Fetch product data by ID
+                val product = productViewModel.getProductById(productId)
 
                 EditProductScreen(
-                    product = product, // Pass product data
+                    product = product,
                     onSave = { updatedProduct ->
-                        productViewModel.updateProduct(updatedProduct) // Save changes
-                        navController.navigateUp() // Navigate back
+                        productViewModel.updateProduct(updatedProduct)
+                        navController.navigateUp()
                     },
-                    onCancel = {
-                        navController.navigateUp() // Navigate back without saving
-                    }
+                    onCancel = { navController.navigateUp() }
                 )
             }
-
             composable("addProduct") {
                 AddProductScreen(
                     viewModel = productViewModel,
@@ -78,8 +81,6 @@ fun MainScreen() {
             composable("report") { ReportScreen() }
             composable("partner") { PartnerScreen() }
             composable("profile") { ProfileScreen(navController) }
-
-            // Add editScreen route
             composable(
                 route = "editScreen/{fieldType}/{fieldValue}",
                 arguments = listOf(
@@ -91,10 +92,8 @@ fun MainScreen() {
                 val fieldValue = backStackEntry.arguments?.getString("fieldValue") ?: ""
                 EditScreen(navController, fieldType, fieldValue)
             }
-
-            // **Add the editPasswordScreen route here**
             composable("editPasswordScreen") {
-                EditPasswordScreen(navController) // Ensure you have this composable defined
+                EditPasswordScreen(navController)
             }
         }
     }
