@@ -3,6 +3,7 @@ package com.praktikum.honeypot.Screen.Home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -25,55 +26,100 @@ import com.praktikum.honeypot.ViewModel.HomeViewModel
 
 @Composable
 fun HomeScreen(
-    homeViewModel: HomeViewModel // Add ViewModel for fetching products and partners
+    homeViewModel: HomeViewModel // ViewModel for fetching products and partners
 ) {
     val products by homeViewModel.products.collectAsState()
     val partners by homeViewModel.partners.collectAsState()
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Greeting
-        Text(
-            text = "Welcome, owner1!",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        // Header Section
+        item {
+            Text(
+                text = "Welcome, owner1!",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
 
-        // Product Overview
-        Text(
-            text = "Jenis Produk: ${products.size}",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Text(
-            text = "Total Stock: ${products.sumOf { it.stock }}",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        // Product and Stock Overview
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OverviewCard(
+                    title = "Jenis Produk",
+                    value = products.size.toString(),
+                    modifier = Modifier.weight(1f)
+                )
+                OverviewCard(
+                    title = "Total Stock",
+                    value = products.sumOf { it.stock }.toString(),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
 
         // Product Section
-        SectionTitle("Produk", onSeeAllClick = { /* Handle See All */ })
-        LazyRow(
-            modifier = Modifier.padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(products.size) { index ->
-                ProductCard(product = products[index])
+        item {
+            SectionTitle("Produk", onSeeAllClick = { /* Handle See All */ })
+        }
+        item {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(products.size) { index ->
+                    ProductCard(product = products[index])
+                }
             }
         }
 
         // Partner Section
-        SectionTitle("Partner", onSeeAllClick = { /* Handle See All */ })
-        LazyRow(
-            modifier = Modifier.padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(partners.size) { index ->
-                PartnerCard(partner = partners[index])
+        item {
+            SectionTitle("Partner", onSeeAllClick = { /* Handle See All */ })
+        }
+        item {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(partners.size) { index ->
+                    PartnerCard(partner = partners[index])
+                }
             }
+        }
+    }
+}
+
+@Composable
+fun OverviewCard(title: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color(0xFFEAF4F4)),
+        modifier = modifier
+            .padding(horizontal = 8.dp)
+            .fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = Color(0xFF00796B)
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = Color(0xFF00796B)
+            )
         }
     }
 }
@@ -85,7 +131,7 @@ fun SectionTitle(title: String, onSeeAllClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium)
+        Text(text = title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
         Text(
             text = "See All",
             color = MaterialTheme.colorScheme.primary,
@@ -98,21 +144,33 @@ fun SectionTitle(title: String, onSeeAllClick: () -> Unit) {
 @Composable
 fun ProductCard(product: Product) {
     Card(
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.size(150.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+        modifier = Modifier
+            .width(180.dp)
+            .height(240.dp)
     ) {
         Column(
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            Image(
+                painter = rememberAsyncImagePainter("https://res.cloudinary.com/dxvcpxgzs/image/upload/v1679084813/image_2023-03-18_032649337_ahtnap.png"),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                contentScale = ContentScale.Crop
+            )
             Text(
                 text = product.name,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(top = 8.dp)
             )
             Text(
                 text = "Rp ${product.price_per_unit}",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF4CAF50)
             )
             Text(
                 text = "Stock: ${product.stock}",
@@ -125,17 +183,28 @@ fun ProductCard(product: Product) {
 @Composable
 fun PartnerCard(partner: Partner) {
     Card(
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.size(150.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+        modifier = Modifier
+            .width(180.dp)
+            .height(240.dp)
     ) {
         Column(
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            Image(
+                painter = rememberAsyncImagePainter("https://res.cloudinary.com/dxvcpxgzs/image/upload/v1679084208/samples/landscapes/architecture-signs.jpg"),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                contentScale = ContentScale.Crop
+            )
             Text(
                 text = partner.name,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(top = 8.dp)
             )
             Text(
                 text = partner.address,
