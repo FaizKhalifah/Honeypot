@@ -59,14 +59,33 @@ fun ProfileScreen(navController: NavController) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Title
-        Text(
-            text = "Profile",
-            fontFamily = dmSansFont,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
+        // Back Arrow and Title in a Box
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            // Back Arrow
+            Image(
+                painter = painterResource(id = R.drawable.arrow_back), // Replace with your drawable resource
+                contentDescription = "Back Arrow",
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .size(40.dp) // Set the size to 31 x 31
+                    .clickable {
+                        navController.popBackStack() // Navigate back when clicked
+                    }
+            )
+            // Title
+            Text(
+                text = "Profile",
+                fontFamily = dmSansFont,
+                fontSize = 25.sp, // Set font size to 20.sp
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
