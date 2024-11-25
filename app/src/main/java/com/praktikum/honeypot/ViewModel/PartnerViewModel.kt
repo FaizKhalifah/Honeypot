@@ -60,7 +60,7 @@ class PartnerViewModel(private val context: Context) : ViewModel() {
 
     fun getPartnerById(partnerId: Int): Partner {
         return partners.value.find { it.partner_id == partnerId}
-            ?: throw IllegalArgumentException("Product not found")
+            ?: throw IllegalArgumentException("Partner not found")
     }
 
     fun updatePartner(updatedPartner: Partner) {
