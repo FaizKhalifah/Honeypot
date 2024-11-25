@@ -1,4 +1,3 @@
-// MainScreen.kt
 package com.praktikum.honeypot.Screen
 
 import androidx.compose.foundation.layout.padding
@@ -22,9 +21,10 @@ import com.praktikum.honeypot.Screen.Product.AddProductScreen
 import com.praktikum.honeypot.Screen.Product.EditProductScreen
 import com.praktikum.honeypot.Screen.Product.ProductScreen
 import com.praktikum.honeypot.Screen.Profile.EditScreen
-import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen // Import EditPasswordScreen
+import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen
 import com.praktikum.honeypot.Screen.Profile.ProfileScreen
 import com.praktikum.honeypot.Screen.Report.ReportScreen
+import com.praktikum.honeypot.ViewModel.HomeViewModel
 import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.ViewModel.ProductViewModel
 
@@ -32,10 +32,14 @@ import com.praktikum.honeypot.ViewModel.ProductViewModel
 fun MainScreen() {
     val navController = rememberNavController()
     val context = LocalContext.current
+
     val productViewModel: ProductViewModel = viewModel(
         factory = AppViewModelFactory(context)
     )
-    val partnerViewModel:PartnerViewModel= viewModel(
+    val partnerViewModel: PartnerViewModel = viewModel(
+        factory = AppViewModelFactory(context)
+    )
+    val homeViewModel: HomeViewModel = viewModel(
         factory = AppViewModelFactory(context)
     )
 
@@ -47,9 +51,12 @@ fun MainScreen() {
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("home") { HomeScreen() }
+            // Home Screen
+            composable("home") {
+                HomeScreen(homeViewModel = homeViewModel)
+            }
 
-
+            // Product Screens
             composable("product") {
                 ProductScreen(
                     onNavigateToAddProduct = { navController.navigate("addProduct") },
@@ -57,73 +64,64 @@ fun MainScreen() {
                         navController.navigate("editProduct/${product.product_id}")
                     },
                     onDeleteProduct = { productId ->
-                        productViewModel.deleteProduct(productId) // Call delete function in ViewModel
+                        productViewModel.deleteProduct(productId)
                     }
                 )
             }
-
-            composable("editProduct/{productId}") { backStackEntry ->
-                val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
-                val product = productViewModel.getProductById(productId) // Fetch product data by ID
-
-                EditProductScreen(
-                    product = product, // Pass product data
-                    onSave = { updatedProduct ->
-                        productViewModel.updateProduct(updatedProduct) // Save changes
-                        navController.navigateUp() // Navigate back
-                    },
-                    onCancel = {
-                        navController.navigateUp() // Navigate back without saving
-                    }
-                )
-            }
-
             composable("addProduct") {
                 AddProductScreen(
                     viewModel = productViewModel,
                     navController = navController
                 )
             }
+            composable("editProduct/{productId}") { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
+                val product = productViewModel.getProductById(productId)
 
+                EditProductScreen(
+                    product = product,
+                    onSave = { updatedProduct ->
+                        productViewModel.updateProduct(updatedProduct)
+                        navController.navigateUp()
+                    },
+                    onCancel = { navController.navigateUp() }
+                )
+            }
 
-            //PartnerScreens
-            composable("partner") { PartnerScreen(
-                onNavigateToAddPartner = { navController.navigate("addPartner") },
-                onNavigateToEditPartner = { partner ->
-                    navController.navigate("editPartner/${partner.partner_id}")
-                },
-            ) }
-
+            // Partner Screens
+            composable("partner") {
+                PartnerScreen(
+                    onNavigateToAddPartner = { navController.navigate("addPartner") },
+                    onNavigateToEditPartner = { partner ->
+                        navController.navigate("editPartner/${partner.partner_id}")
+                    }
+                )
+            }
             composable("addPartner") {
                 AddPartnerScreen(
                     viewModel = partnerViewModel,
                     navController = navController
                 )
             }
-
             composable("editPartner/{partnerId}") { backStackEntry ->
                 val partnerId = backStackEntry.arguments?.getString("partnerId")?.toInt() ?: 0
-                val partner = partnerViewModel.getPartnerById(partnerId) // Fetch product data by ID
+                val partner = partnerViewModel.getPartnerById(partnerId)
 
                 EditPartnerScreen(
-                    partner=partner, // Pass product data
+                    partner = partner,
                     onSave = { updatedPartner ->
-                        partnerViewModel.updatePartner(updatedPartner) // Save changes
-                        navController.navigateUp() // Navigate back
+                        partnerViewModel.updatePartner(updatedPartner)
+                        navController.navigateUp()
                     },
-                    onCancel = {
-                        navController.navigateUp() // Navigate back without saving
-                    }
+                    onCancel = { navController.navigateUp() }
                 )
             }
 
-
-
+            // Report Screen
             composable("report") { ReportScreen() }
 
+            // Profile Screens
             composable("profile") { ProfileScreen(navController) }
-
-            // Add editScreen route
             composable(
                 route = "editScreen/{fieldType}/{fieldValue}",
                 arguments = listOf(
@@ -135,10 +133,8 @@ fun MainScreen() {
                 val fieldValue = backStackEntry.arguments?.getString("fieldValue") ?: ""
                 EditScreen(navController, fieldType, fieldValue)
             }
-
-            // **Add the editPasswordScreen route here**
             composable("editPasswordScreen") {
-                EditPasswordScreen(navController) // Ensure you have this composable defined
+                EditPasswordScreen(navController)
             }
         }
     }
