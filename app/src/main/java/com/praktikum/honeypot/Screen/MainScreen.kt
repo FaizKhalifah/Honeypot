@@ -27,6 +27,7 @@ import com.praktikum.honeypot.Screen.Report.ReportScreen
 import com.praktikum.honeypot.ViewModel.HomeViewModel
 import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.ViewModel.ProductViewModel
+import com.praktikum.honeypot.ViewModel.ProfileViewModel
 
 @Composable
 fun MainScreen() {
@@ -42,6 +43,9 @@ fun MainScreen() {
     val homeViewModel: HomeViewModel = viewModel(
         factory = AppViewModelFactory(context)
     )
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = AppViewModelFactory(context)
+    )
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
@@ -53,7 +57,10 @@ fun MainScreen() {
         ) {
             // Home Screen
             composable("home") {
-                HomeScreen(homeViewModel = homeViewModel)
+                HomeScreen(
+                    homeViewModel = homeViewModel,
+                    profileViewModel = profileViewModel // Pass ProfileViewModel
+                )
             }
 
             // Product Screens

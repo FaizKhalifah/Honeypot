@@ -32,6 +32,7 @@ import com.praktikum.honeypot.R
 import com.praktikum.honeypot.Data.Product
 import com.praktikum.honeypot.Data.Partner
 import com.praktikum.honeypot.ViewModel.HomeViewModel
+import com.praktikum.honeypot.ViewModel.ProfileViewModel
 
 // Define the DM Sans font family
 val dmSansFontFamily = FontFamily(
@@ -42,10 +43,12 @@ val dmSansFontFamily = FontFamily(
 
 @Composable
 fun HomeScreen(
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    profileViewModel: ProfileViewModel // Add ProfileViewModel for fetching username
 ) {
     val products by homeViewModel.products.collectAsState()
     val partners by homeViewModel.partners.collectAsState()
+    val ownerProfile by profileViewModel.profile.collectAsState() // Observe username
 
     LazyColumn(
         modifier = Modifier
@@ -55,15 +58,29 @@ fun HomeScreen(
     ) {
         // Header Section
         item {
-            Text(
-                text = "Welcome, owner1!",
-                style = TextStyle(
-                    fontFamily = dmSansFontFamily,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            Column(
+                horizontalAlignment = Alignment.Start, // Align items to the left
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Honeypot Logo on Top Left
+                Image(
+                    painter = painterResource(id = R.drawable.honeypot_logo), // Replace with your drawable logo
+                    contentDescription = "Honeypot Logo",
+                    modifier = Modifier
+                        .size(120.dp) // Make the logo larger
+                        .padding(bottom = 8.dp) // Add spacing below the logo
+                )
+
+                // Welcome Message below the logo
+                Text(
+                    text = "Welcome, ${ownerProfile?.username ?: "User"}!", // Display username
+                    style = TextStyle(
+                        fontFamily = dmSansFontFamily,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
         }
 
         item {
@@ -77,12 +94,13 @@ fun HomeScreen(
             )
         }
 
-
-
-
         // Product Section
         item {
-            SectionTitle("Produk", onSeeAllClick = { /* Handle See All */ })
+            SectionTitle(
+                title = "Produk",
+                onSeeAllClick = { /* Handle See All */ },
+                backgroundColor = Color(0xFF43766C) // Product color
+            )
         }
         item {
             LazyRow(
@@ -96,7 +114,11 @@ fun HomeScreen(
 
         // Partner Section
         item {
-            SectionTitle("Partner", onSeeAllClick = { /* Handle See All */ })
+            SectionTitle(
+                title = "Partner",
+                onSeeAllClick = { /* Handle See All */ },
+                backgroundColor = Color(0xFF76453B) // Partner color
+            )
         }
         item {
             LazyRow(
@@ -229,12 +251,15 @@ fun OverviewCardMerged(
 
 
 @Composable
-fun SectionTitle(title: String, onSeeAllClick: () -> Unit) {
+fun SectionTitle(title: String, onSeeAllClick: () -> Unit, backgroundColor: Color) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Section Title
         Text(
             text = title,
             style = TextStyle(
@@ -243,15 +268,32 @@ fun SectionTitle(title: String, onSeeAllClick: () -> Unit) {
                 fontWeight = FontWeight.Bold
             )
         )
-        Text(
-            text = "See All",
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 14.sp,
-            fontFamily = dmSansFontFamily,
-            modifier = Modifier.clickable { onSeeAllClick() }
-        )
+
+        // "See All" Button with Styled Box
+        Box(
+            modifier = Modifier
+                .background(
+                    color = backgroundColor, // Dynamically set the background color
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .clickable { onSeeAllClick() }
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "See All",
+                style = TextStyle(
+                    fontFamily = dmSansFontFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            )
+        }
     }
 }
+
+
 
 @Composable
 fun ProductCard(product: Product) {
