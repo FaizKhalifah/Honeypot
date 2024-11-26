@@ -53,21 +53,25 @@ fun HomeScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(start = 16.dp, end = 16.dp)
+            .offset(y = -40.dp), // Increased offset to move content higher
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Header Section
         item {
             Column(
                 horizontalAlignment = Alignment.Start, // Align items to the left
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 0.dp) // No padding at the top
             ) {
-                // Honeypot Logo on Top Left
+                // Honeypot Logo at the very top (does not move further)
                 Image(
                     painter = painterResource(id = R.drawable.honeypot_logo), // Replace with your drawable logo
                     contentDescription = "Honeypot Logo",
                     modifier = Modifier
                         .size(120.dp) // Make the logo larger
+                        .offset(y = 0.dp) // Negative offset to pull logo higher
                         .padding(bottom = 8.dp) // Add spacing below the logo
                 )
 
@@ -78,11 +82,13 @@ fun HomeScreen(
                         fontFamily = dmSansFontFamily,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
-                    )
+                    ),
+                    modifier = Modifier.offset(y = -20.dp) // Bring the text closer to the logo
                 )
             }
         }
 
+        // Content Section (Everything else moves up by -40dp)
         item {
             OverviewCardMerged(
                 titleLeft = "Jenis Produk",
@@ -131,6 +137,7 @@ fun HomeScreen(
         }
     }
 }
+
 
 @Composable
 fun OverviewCardMerged(
@@ -251,7 +258,7 @@ fun OverviewCardMerged(
 
 
 @Composable
-fun SectionTitle(title: String, onSeeAllClick: () -> Unit, backgroundColor: Color) {
+fun SectionTitle(title: String, onSeeAllClick: () -> Unit, backgroundColor: Color, modifier: Modifier = Modifier) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
