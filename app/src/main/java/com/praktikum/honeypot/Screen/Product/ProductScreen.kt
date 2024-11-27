@@ -34,6 +34,7 @@ fun ProductScreen(
     onNavigateToAddProduct: () -> Unit,
     onNavigateToEditProduct: (Product) -> Unit,
     onDeleteProduct: (Int) -> Unit,
+    onNavigateToProductDetail: (Int) -> Unit // Add this parameter
 ) {
     val context = LocalContext.current
     val productViewModel: ProductViewModel = viewModel(
@@ -78,7 +79,7 @@ fun ProductScreen(
                 items(products) { product ->
                     ProductCard(
                         product = product,
-                        onClick = { productViewModel.selectProduct(product) }
+                        onClick = { onNavigateToProductDetail(product.product_id) } // Navigate to detail on click
                     )
                 }
             }

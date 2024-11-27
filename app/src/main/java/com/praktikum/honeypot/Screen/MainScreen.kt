@@ -17,8 +17,10 @@ import com.praktikum.honeypot.Screen.Home.HomeScreen
 import com.praktikum.honeypot.Screen.Partner.AddPartnerScreen
 import com.praktikum.honeypot.Screen.Partner.EditPartnerScreen
 import com.praktikum.honeypot.Screen.Partner.PartnerScreen
+import com.praktikum.honeypot.Screen.Partner.PartnerDetail  // Import PartnerDetail
 import com.praktikum.honeypot.Screen.Product.AddProductScreen
 import com.praktikum.honeypot.Screen.Product.EditProductScreen
+import com.praktikum.honeypot.Screen.Product.ProductDetail
 import com.praktikum.honeypot.Screen.Product.ProductScreen
 import com.praktikum.honeypot.Screen.Profile.EditScreen
 import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen
@@ -59,7 +61,8 @@ fun MainScreen() {
             composable("home") {
                 HomeScreen(
                     homeViewModel = homeViewModel,
-                    profileViewModel = profileViewModel // Pass ProfileViewModel
+                    profileViewModel = profileViewModel,
+                    navController = navController
                 )
             }
 
@@ -72,6 +75,9 @@ fun MainScreen() {
                     },
                     onDeleteProduct = { productId ->
                         productViewModel.deleteProduct(productId)
+                    },
+                    onNavigateToProductDetail = { productId ->  // Add this
+                        navController.navigate("productDetail/$productId")
                     }
                 )
             }
@@ -92,6 +98,24 @@ fun MainScreen() {
                         navController.navigateUp()
                     },
                     onCancel = { navController.navigateUp() }
+                )
+            }
+
+            // New route for product detail
+            composable("productDetail/{productId}") { backStackEntry ->
+                val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
+                val product = productViewModel.getProductById(productId)
+
+                ProductDetail(
+                    product = product,
+                    onDismiss = { navController.navigateUp() },
+                    onEdit = { product ->
+                        navController.navigate("editProduct/${product.product_id}")
+                    },
+                    onDelete = { product ->
+                        productViewModel.deleteProduct(product.product_id)
+                        navController.navigateUp()
+                    }
                 )
             }
 
@@ -121,6 +145,24 @@ fun MainScreen() {
                         navController.navigateUp()
                     },
                     onCancel = { navController.navigateUp() }
+                )
+            }
+
+            // Partner Detail Screen
+            composable("partnerDetail/{partnerId}") { backStackEntry ->
+                val partnerId = backStackEntry.arguments?.getString("partnerId")?.toInt() ?: 0
+                val partner = partnerViewModel.getPartnerById(partnerId)
+
+                PartnerDetail(
+                    partner = partner,
+                    onDismiss = { navController.navigateUp() },
+                    onEdit = { partner ->
+                        navController.navigate("editPartner/${partner.partner_id}")
+                    },
+                    onDelete = { partner ->
+                        partnerViewModel.deleteProduct(partner.partner_id)
+                        navController.navigateUp()
+                    }
                 )
             }
 
