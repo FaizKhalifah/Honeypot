@@ -36,13 +36,14 @@ import com.praktikum.honeypot.Screen.Product.ProductDetail
 fun PartnerScreen(
     onNavigateToAddPartner: () -> Unit,
     onNavigateToEditPartner: (Partner) -> Unit,
-){
+) {
     val context = LocalContext.current
     val partnerViewModel: PartnerViewModel = viewModel(
         factory = AppViewModelFactory(context)
     )
     val partners by partnerViewModel.partners.collectAsState()
     val selectedPartner by partnerViewModel.selectedPartner.collectAsState()
+
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -54,7 +55,7 @@ fun PartnerScreen(
             ) {
                 Image(
                     painter = painterResource(R.drawable.add_circle),
-                    contentDescription = "Add Product"
+                    contentDescription = "Add Partner"
                 )
             }
         }
@@ -65,14 +66,13 @@ fun PartnerScreen(
                 partner = selectedPartner!!,
                 onDismiss = { partnerViewModel.clearSelectedPartner() },
                 onEdit = { partner -> onNavigateToEditPartner(partner) },
-                onDelete = {partner ->
-                    // Hapus produk dari ViewModel
+                onDelete = { partner ->
                     partnerViewModel.deleteProduct(partner.partner_id)
                     partnerViewModel.clearSelectedPartner()
                 }
             )
         } else {
-            // Tampilkan daftar produk
+            // Tampilkan daftar partner
             LazyColumn(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -87,9 +87,6 @@ fun PartnerScreen(
             }
         }
     }
-
-
-
 }
 
 @Composable
@@ -116,7 +113,6 @@ fun PartnerCard(partner: Partner, onClick: () -> Unit) {
             Column {
                 Text(text = partner.name, color = Color.Black)
                 Text(text = partner.address, color = Color.Gray)
-
             }
         }
     }

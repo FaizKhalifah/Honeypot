@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.praktikum.honeypot.R
 import com.praktikum.honeypot.Data.Product
@@ -44,68 +46,55 @@ val dmSansFontFamily = FontFamily(
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel,
-    profileViewModel: ProfileViewModel // Add ProfileViewModel for fetching username
+    profileViewModel: ProfileViewModel,
+    navController: NavController // Pass the NavController from MainScreen
 ) {
     val products by homeViewModel.products.collectAsState()
     val partners by homeViewModel.partners.collectAsState()
-    val ownerProfile by profileViewModel.profile.collectAsState() // Observe username
+    val ownerProfile by profileViewModel.profile.collectAsState()
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(start = 16.dp, end = 16.dp)
-            .offset(y = -40.dp), // Increased offset to move content higher
+            .offset(y = -40.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Header Section
         item {
             Column(
-                horizontalAlignment = Alignment.Start, // Align items to the left
+                horizontalAlignment = Alignment.Start,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 0.dp) // No padding at the top
             ) {
-                // Honeypot Logo at the very top (does not move further)
+                // Honeypot Logo and Welcome message as before
                 Image(
-                    painter = painterResource(id = R.drawable.honeypot_logo), // Replace with your drawable logo
+                    painter = painterResource(id = R.drawable.honeypot_logo),
                     contentDescription = "Honeypot Logo",
                     modifier = Modifier
-                        .size(120.dp) // Make the logo larger
-                        .offset(y = 0.dp) // Negative offset to pull logo higher
-                        .padding(bottom = 8.dp) // Add spacing below the logo
+                        .size(120.dp)
+                        .padding(bottom = 8.dp)
                 )
-
-                // Welcome Message below the logo
                 Text(
-                    text = "Welcome, ${ownerProfile?.username ?: "User"}!", // Display username
+                    text = "Welcome, ${ownerProfile?.username ?: "User"}!",
                     style = TextStyle(
                         fontFamily = dmSansFontFamily,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     ),
-                    modifier = Modifier.offset(y = -20.dp) // Bring the text closer to the logo
+                    modifier = Modifier.offset(y = -20.dp)
                 )
             }
         }
 
-        // Content Section (Everything else moves up by -40dp)
-        item {
-            OverviewCardMerged(
-                titleLeft = "Jenis Produk",
-                valueLeft = products.size.toString(),
-                imageRes = R.drawable.graph, // Graph beside "Jenis Produk"
-                titleRight = "Total Stock",
-                valueRight = products.sumOf { it.stock }.toString(),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+        // Product and Partner Sections...
 
         // Product Section
         item {
             SectionTitle(
                 title = "Produk",
-                onSeeAllClick = { /* Handle See All */ },
-                backgroundColor = Color(0xFF43766C) // Product color
+                onSeeAllClick = { navController.navigate("product") },
+                backgroundColor = Color(0xFF43766C)
             )
         }
         item {
@@ -113,7 +102,9 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(products.size) { index ->
-                    ProductCard(product = products[index])
+                    ProductCard(product = products[index], onClick = {
+                        navController.navigate("productDetail/${products[index].product_id}")
+                    })
                 }
             }
         }
@@ -122,8 +113,8 @@ fun HomeScreen(
         item {
             SectionTitle(
                 title = "Partner",
-                onSeeAllClick = { /* Handle See All */ },
-                backgroundColor = Color(0xFF76453B) // Partner color
+                onSeeAllClick = { navController.navigate("partner") },
+                backgroundColor = Color(0xFF76453B)
             )
         }
         item {
@@ -131,7 +122,9 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(partners.size) { index ->
-                    PartnerCard(partner = partners[index])
+                    PartnerCard(partner = partners[index], onClick = {
+                        navController.navigate("partnerDetail/${partners[index].partner_id}")
+                    })
                 }
             }
         }
@@ -255,8 +248,6 @@ fun OverviewCardMerged(
     }
 }
 
-
-
 @Composable
 fun SectionTitle(title: String, onSeeAllClick: () -> Unit, backgroundColor: Color, modifier: Modifier = Modifier) {
     Row(
@@ -283,7 +274,7 @@ fun SectionTitle(title: String, onSeeAllClick: () -> Unit, backgroundColor: Colo
                     color = backgroundColor, // Dynamically set the background color
                     shape = RoundedCornerShape(16.dp)
                 )
-                .clickable { onSeeAllClick() }
+                .clickable { onSeeAllClick() } // Handle the click action
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -300,19 +291,18 @@ fun SectionTitle(title: String, onSeeAllClick: () -> Unit, backgroundColor: Colo
     }
 }
 
-
-
 @Composable
-fun ProductCard(product: Product) {
+fun ProductCard(product: Product, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, Color.LightGray),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
-            .width(200.dp) // Increased width
-            .height(300.dp) // Increased height
+            .width(200.dp)
+            .height(300.dp)
             .padding(8.dp)
-    ) {
+            .clickable(onClick = onClick)  // Navigate on click
+    ){
         Box {
             // Image Section
             Image(
@@ -400,15 +390,16 @@ fun ProductCard(product: Product) {
 }
 
 @Composable
-fun PartnerCard(partner: Partner) {
+fun PartnerCard(partner: Partner, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, Color.LightGray),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
-            .width(200.dp) // Increased width
-            .height(300.dp) // Increased height
+            .width(200.dp)
+            .height(300.dp)
             .padding(8.dp)
+            .clickable(onClick = onClick)  // Navigate on click
     ) {
         Box {
             // Image Section
@@ -479,6 +470,3 @@ fun PartnerCard(partner: Partner) {
         }
     }
 }
-
-
-
