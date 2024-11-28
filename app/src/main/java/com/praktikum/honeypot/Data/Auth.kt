@@ -10,8 +10,10 @@ data class LoginRequest(
 
 data class LoginResponse(
     val owner: Owner,
-    val token: String
+    val accessToken: String,   // Add the new accessToken field
+    val refreshToken: String   // Add the new refreshToken field
 )
+
 
 
 // Untuk register
