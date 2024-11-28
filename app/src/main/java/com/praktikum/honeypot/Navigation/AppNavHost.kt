@@ -14,10 +14,10 @@ import com.praktikum.honeypot.Screen.Profile.ProfileScreen
 import com.praktikum.honeypot.Screen.Auth.RegisterScreen
 
 @Composable
-fun AppNavHost() {
+fun AppNavHost(startDestination: String) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = startDestination) {
         // Login Screen
         composable("login") {
             LoginScreen(
@@ -61,6 +61,5 @@ fun AppNavHost() {
             println("Navigating to EditPasswordScreen")
             EditPasswordScreen(navController)
         }
-
     }
 }

@@ -10,6 +10,7 @@ import com.praktikum.honeypot.Util.RetrofitClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.concurrent.TimeUnit
 
 class AuthViewModel(private val context: Context) {
     private val preferencesHelper = PreferencesHelper(context)
@@ -21,11 +22,17 @@ class AuthViewModel(private val context: Context) {
         authApiService.login(loginRequest).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful) {
-                    val token = response.body()?.token
-                    token?.let {
-                        preferencesHelper.saveToken(it) // Simpan token ke PreferencesHelper
+                    val accessToken = response.body()?.accessToken
+                    val refreshToken = response.body()?.refreshToken
+                    if (accessToken != null && refreshToken != null) {
+                        // Save access token and expiration time (1 hour from now)
+                        val expiryTime = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)
+                        preferencesHelper.saveAccessToken(accessToken, expiryTime)
+                        preferencesHelper.saveRefreshToken(refreshToken)
                         onSuccess()
-                    } ?: onError("Token not found in response")
+                    } else {
+                        onError("Access token or refresh token not found in response")
+                    }
                 } else {
                     onError("Login failed: ${response.code()}")
                 }
@@ -63,3 +70,5 @@ class AuthViewModel(private val context: Context) {
         })
     }
 }
+
+

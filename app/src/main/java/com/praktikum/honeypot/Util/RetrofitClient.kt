@@ -13,39 +13,47 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
     private const val BASE_URL = "https://jowo-jogorogo.vercel.app/"
 
-    // Fungsi untuk membuat Retrofit instance dengan AuthInterceptor
-    fun create(context: Context): Retrofit {
-        val preferencesHelper = PreferencesHelper(context) // Inisialisasi PreferencesHelper
-        val authInterceptor = AuthInterceptor(preferencesHelper) // Tambahkan AuthInterceptor
+    // Retrofit instance
+    private lateinit var retrofit: Retrofit
 
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(authInterceptor) // Tambahkan interceptor ke OkHttpClient
-            .connectTimeout(30, TimeUnit.SECONDS) // Atur timeout
-            .readTimeout(30, TimeUnit.SECONDS)
-            .build()
+    // Function to initialize Retrofit with AuthInterceptor
+    private fun initRetrofit(context: Context) {
+        if (!::retrofit.isInitialized) {
+            val preferencesHelper = PreferencesHelper(context) // Initialize PreferencesHelper
+            val authInterceptor = AuthInterceptor(preferencesHelper) // Add AuthInterceptor
 
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient) // Gunakan OkHttpClient dengan interceptor
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+            val okHttpClient = OkHttpClient.Builder()
+                .addInterceptor(authInterceptor) // Add interceptor to OkHttpClient
+                .connectTimeout(30, TimeUnit.SECONDS) // Set connection timeout
+                .readTimeout(30, TimeUnit.SECONDS) // Set read timeout
+                .build()
+
+            retrofit = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(okHttpClient) // Use OkHttpClient with interceptor
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        }
     }
 
-    // Service instances
+    // Service instances, initialized only once
     fun getProductApiService(context: Context): ProductApiService {
-        return create(context).create(ProductApiService::class.java)
+        initRetrofit(context) // Initialize Retrofit
+        return retrofit.create(ProductApiService::class.java)
     }
 
     fun getAuthApiService(context: Context): AuthApiService {
-        return create(context).create(AuthApiService::class.java)
+        initRetrofit(context) // Initialize Retrofit
+        return retrofit.create(AuthApiService::class.java)
     }
 
-    fun getPartnerApiService(context: Context):PartnerApiService{
-        return create(context).create(PartnerApiService::class.java)
+    fun getPartnerApiService(context: Context): PartnerApiService {
+        initRetrofit(context) // Initialize Retrofit
+        return retrofit.create(PartnerApiService::class.java)
     }
 
     fun getProfileApiService(context: Context): ProfileApiService {
-        return create(context).create(ProfileApiService::class.java)
+        initRetrofit(context) // Initialize Retrofit
+        return retrofit.create(ProfileApiService::class.java)
     }
-
 }
