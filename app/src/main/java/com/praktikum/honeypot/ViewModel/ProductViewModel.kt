@@ -32,6 +32,7 @@ class ProductViewModel(private val context: Context) : ViewModel() {
         }
     }
 
+
     fun selectProduct(product: Product) {
         _selectedProduct.value = product
     }
@@ -40,6 +41,12 @@ class ProductViewModel(private val context: Context) : ViewModel() {
     fun clearSelectedProduct() {
         _selectedProduct.value = null
     }
+
+    fun getAllProducts(): List<Product> {
+        return products.value // Pastikan `products` adalah StateFlow<List<Product>> yang telah diinisialisasi.
+    }
+
+
 
     fun addProduct(newProduct: Product, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
@@ -63,6 +70,7 @@ class ProductViewModel(private val context: Context) : ViewModel() {
         return products.value.find { it.product_id == productId }
             ?: throw IllegalArgumentException("Product not found")
     }
+
 
 
     fun updateProduct(updatedProduct: Product) {

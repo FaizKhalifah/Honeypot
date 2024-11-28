@@ -134,19 +134,42 @@ fun MainScreen() {
                     navController = navController
                 )
             }
+
             composable("editPartner/{partnerId}") { backStackEntry ->
                 val partnerId = backStackEntry.arguments?.getString("partnerId")?.toInt() ?: 0
+                val productId = backStackEntry.arguments?.getString("productId")?.toInt()
+
                 val partner = partnerViewModel.getPartnerById(partnerId)
+                val partnerStockList = partnerViewModel.getPartnerStockById(partnerId, productId)
+                val productList = productViewModel.getAllProducts()
 
                 EditPartnerScreen(
-                    partner = partner,
-                    onSave = { updatedPartner ->
-                        partnerViewModel.updatePartner(updatedPartner)
+                    partnerStockList = partnerStockList,
+                    productList = productList,
+                    onSave = {
+                            updatedStockList ->
+                            updatedStockList.forEach { partnerStock ->
+                            partnerViewModel.updatePartnerStock(
+                                partnerId = partnerId,
+                                productId = partnerStock.product_id,
+                                stockChange = partnerStock.stock, // Asumsikan `stock` mewakili perubahan stok
+                                onSuccess = {
+                                    // Berhasil diperbarui
+                                    println("Stock updated for product ${partnerStock.product_id}")
+                                },
+                                onError = { errorMessage ->
+                                    // Tangani error
+                                    println("Failed to update stock for product ${partnerStock.product_id}: $errorMessage")
+                                }
+                            )
+                        }
                         navController.navigateUp()
                     },
                     onCancel = { navController.navigateUp() }
                 )
             }
+
+
 
             // Partner Detail Screen
             composable("partnerDetail/{partnerId}") { backStackEntry ->

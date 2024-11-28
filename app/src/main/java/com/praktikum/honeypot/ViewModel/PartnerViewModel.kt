@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.praktikum.honeypot.Data.Partner
+import com.praktikum.honeypot.Data.PartnerStock
 import com.praktikum.honeypot.Data.Product
+import com.praktikum.honeypot.Data.StockUpdateRequest
 import com.praktikum.honeypot.Util.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,6 +65,13 @@ class PartnerViewModel(private val context: Context) : ViewModel() {
             ?: throw IllegalArgumentException("Partner not found")
     }
 
+    fun getPartnerStockById(partnerId: Int, productId: Int? = null): List<PartnerStock> {
+        val partner = partners.value.find { it.partner_id == partnerId }
+        return partner?.PartnerStocks?.filter { productId == null || it.product_id == productId } ?: emptyList()
+    }
+
+
+
     fun updatePartner(updatedPartner: Partner) {
         viewModelScope.launch {
             val partnerApiService = RetrofitClient.getPartnerApiService(context)
@@ -77,6 +86,32 @@ class PartnerViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
+
+    fun updatePartnerStock(partnerId: Int, productId: Int, stockChange: Int, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val partnerApiService = RetrofitClient.getPartnerApiService(context)
+
+                // Membuat request body untuk mengupdate stok
+                val requestBody = StockUpdateRequest(product_id = productId, stockChange = stockChange)
+
+                // Mengirim permintaan untuk memperbarui stok produk
+                val response = partnerApiService.updatePartnerStock(partnerId, requestBody)
+
+                if (response.isSuccessful) {
+                    onSuccess()
+                    // Setelah berhasil, kamu dapat memuat ulang data partner dan stoknya
+                    loadPartners()
+                } else {
+                    onError("Failed to update stock: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
+            }
+        }
+    }
+
+
 
 
 
