@@ -20,7 +20,7 @@ object RetrofitClient {
     private fun initRetrofit(context: Context) {
         if (!::retrofit.isInitialized) {
             val preferencesHelper = PreferencesHelper(context) // Initialize PreferencesHelper
-            val authInterceptor = AuthInterceptor(preferencesHelper) // Add AuthInterceptor
+            val authInterceptor = AuthInterceptor(preferencesHelper, context) // Add AuthInterceptor
 
             val okHttpClient = OkHttpClient.Builder()
                 .addInterceptor(authInterceptor) // Add interceptor to OkHttpClient

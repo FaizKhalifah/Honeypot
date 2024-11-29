@@ -34,3 +34,17 @@ data class RegisterResponse(
    val createdAt: String
 )
 
+data class RefreshTokenRequest(
+    val refreshToken: String
+)
+
+data class RefreshTokenResponse(
+    val accessToken: String,
+    val refreshToken: String
+)
+
+data class LogoutResponse(
+    val message: String
+)
+
+
