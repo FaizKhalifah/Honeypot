@@ -33,6 +33,9 @@ class PreferencesHelper(context: Context) {
     }
 
     fun clearTokens() {
-        sharedPreferences.edit().clear().apply()
+        sharedPreferences.edit()
+            .remove("access_token")
+            .remove("refresh_token")
+            .apply()
     }
 }
