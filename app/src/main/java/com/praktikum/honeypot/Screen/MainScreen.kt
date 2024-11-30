@@ -3,17 +3,24 @@ package com.praktikum.honeypot.Screen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.Navigation.BottomNavigationBar
 import com.praktikum.honeypot.Screen.Auth.LoginScreen
+import com.praktikum.honeypot.Screen.Auth.RegisterScreen
 import com.praktikum.honeypot.Screen.Home.HomeScreen
 import com.praktikum.honeypot.Screen.Partner.AddPartnerScreen
 import com.praktikum.honeypot.Screen.Partner.EditPartnerScreen
@@ -50,8 +57,22 @@ fun MainScreen() {
         factory = AppViewModelFactory(context)
     )
 
+    // Track the current route
+    var currentRoute by remember { mutableStateOf("") }
+
+    // Update the current route
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect { backStackEntry ->
+            currentRoute = backStackEntry.destination.route ?: ""
+        }
+    }
+
     Scaffold(
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = {
+            if (currentRoute !in listOf("login", "register")) {
+                BottomNavigationBar(navController)
+            }
+        }
     ) { paddingValues ->
         NavHost(
             navController = navController,
@@ -66,22 +87,23 @@ fun MainScreen() {
                     navController = navController
                 )
             }
-
-            // Product Screens
+            composable("main") {
+                MainScreen()
+            }
+            composable("register") {
+                RegisterScreen(
+                    onNavigateToMain = { navController.navigate("main") { popUpTo("login") { inclusive = true } } }
+                )
+            }
             composable("product") {
                 ProductScreen(
                     onNavigateToAddProduct = { navController.navigate("addProduct") },
-                    onNavigateToEditProduct = { product ->
-                        navController.navigate("editProduct/${product.product_id}")
-                    },
-                    onDeleteProduct = { productId ->
-                        productViewModel.deleteProduct(productId)
-                    },
-                    onNavigateToProductDetail = { productId ->  // Add this
-                        navController.navigate("productDetail/$productId")
-                    }
+                    onNavigateToEditProduct = { product -> navController.navigate("editProduct/${product.product_id}") },
+                    onDeleteProduct = { productId -> productViewModel.deleteProduct(productId) },
+                    onNavigateToProductDetail = { productId -> navController.navigate("productDetail/$productId") }
                 )
             }
+
             composable("addProduct") {
                 AddProductScreen(
                     viewModel = productViewModel,
