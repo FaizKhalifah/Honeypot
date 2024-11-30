@@ -15,18 +15,20 @@ class MainActivity : ComponentActivity() {
         val accessToken = preferencesHelper.getAccessToken()
         val accessTokenExpiry = preferencesHelper.getAccessTokenExpiry()
 
-        val startDestination = if (System.currentTimeMillis() > accessTokenExpiry || accessToken == null) {
+        // Check if the token is expired or not found
+        val startDestination = if (accessToken == null || System.currentTimeMillis() > accessTokenExpiry) {
             // Token expired or not found, navigate to login screen
             "login"
         } else {
-            // Token valid, navigate to main screen
+            // Token is valid, navigate to main screen
             "main"
         }
 
         setContent {
             MaterialTheme {
-                AppNavHost(startDestination = startDestination) // Pass dynamic start destination
+                AppNavHost(startDestination = startDestination) // Dynamically pass start destination
             }
         }
     }
 }
+

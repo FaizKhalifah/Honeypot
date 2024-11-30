@@ -46,6 +46,7 @@ class AuthViewModel(private val context: Context) {
         })
     }
 
+
     // Refresh access token manually (to be used for forced refresh)
     fun refreshAccessToken(onSuccess: () -> Unit, onError: (String) -> Unit) {
         val refreshToken = preferencesHelper.getRefreshToken()
