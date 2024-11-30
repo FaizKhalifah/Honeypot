@@ -28,12 +28,13 @@ import coil.compose.AsyncImage
 import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.R
 import com.praktikum.honeypot.Util.PreferencesHelper
+import com.praktikum.honeypot.ViewModel.AppStateViewModel
 import com.praktikum.honeypot.ViewModel.ProfileViewModel
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, appStateViewModel: AppStateViewModel) {
     val context = LocalContext.current
-    val preferencesHelper = PreferencesHelper(context)  // Initialize PreferencesHelper
+    val preferencesHelper = PreferencesHelper(context)
     val profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory(context))
     val profile = profileViewModel.profile.collectAsState()
 
@@ -43,7 +44,7 @@ fun ProfileScreen(navController: NavController) {
         ?.observeAsState(initial = false)
 
     if (refreshState?.value == true) {
-        profileViewModel.fetchProfile() // Fetch updated profile data
+        profileViewModel.fetchProfile()
         navController.currentBackStackEntry?.savedStateHandle?.set("refreshProfile", false)
     }
 
@@ -61,28 +62,26 @@ fun ProfileScreen(navController: NavController) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Back Arrow and Title in a Box
+        // Back Arrow and Title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            // Back Arrow
             Image(
-                painter = painterResource(id = R.drawable.arrow_back), // Replace with your drawable resource
+                painter = painterResource(id = R.drawable.arrow_back),
                 contentDescription = "Back Arrow",
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .size(40.dp) // Set the size to 31 x 31
+                    .size(40.dp)
                     .clickable {
-                        navController.popBackStack() // Navigate back when clicked
+                        navController.popBackStack()
                     }
             )
-            // Title
             Text(
                 text = "Profile",
                 fontFamily = dmSansFont,
-                fontSize = 25.sp, // Set font size to 20.sp
+                fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
                 modifier = Modifier.align(Alignment.Center)
@@ -147,11 +146,10 @@ fun ProfileScreen(navController: NavController) {
             )
             ProfileDetailItem(
                 label = "Password",
-                value = "*********", // Masked password
+                value = "*********",
                 fontFamily = dmSansFont,
                 onClick = {
-                    println("Navigating to editPasswordScreen")
-                    navController.navigate("editPasswordScreen") // Ensure this matches the route in NavHost
+                    navController.navigate("editPasswordScreen")
                 }
             )
         }
@@ -173,16 +171,15 @@ fun ProfileScreen(navController: NavController) {
                 color = Color.White,
                 fontFamily = dmSansFont,
                 modifier = Modifier.clickable {
-                    // Perform logout logic and navigate to LoginScreen
+                    // Logout logic
+                    appStateViewModel.logOut()
                     profileViewModel.logout(
                         onSuccess = {
-                            // Navigate to Login Screen after successful logout
                             navController.navigate("login") {
-                                popUpTo("main") { inclusive = true } // Ensure we pop all previous screens
+                                popUpTo("main") { inclusive = true }
                             }
                         },
                         onError = { errorMessage ->
-                            // Show error message if logout fails
                             println("Logout Error: $errorMessage")
                         }
                     )
@@ -193,6 +190,7 @@ fun ProfileScreen(navController: NavController) {
 
     Spacer(modifier = Modifier.height(16.dp)) // Space above the navbar
 }
+
 
 
 

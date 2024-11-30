@@ -37,6 +37,7 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val authViewModel = AuthViewModel(LocalContext.current)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -49,7 +50,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
-            value =username,
+            value = username,
             onValueChange = { username = it },
             label = { Text("Username") },
             modifier = Modifier.fillMaxWidth()
@@ -66,6 +67,7 @@ fun LoginScreen(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             onClick = {
                 isLoading = true
@@ -75,7 +77,7 @@ fun LoginScreen(
                     password = password,
                     onSuccess = {
                         isLoading = false
-                        onLoginSuccess() // Navigasi ke halaman utama
+                        onLoginSuccess() // Navigate to the main screen
                     },
                     onError = { error ->
                         isLoading = false
@@ -110,3 +112,4 @@ fun LoginScreen(
         )
     }
 }
+
