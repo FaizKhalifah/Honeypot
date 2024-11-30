@@ -26,13 +26,6 @@ fun AppNavHost(startDestination: String) {
             )
         }
 
-        // Register Screen
-        composable("register") {
-            RegisterScreen(
-                onNavigateToMain = { navController.navigate("main") { popUpTo("login") { inclusive = true } } }
-            )
-        }
-
         // Main Screen
         composable("main") {
             MainScreen()
@@ -42,7 +35,12 @@ fun AppNavHost(startDestination: String) {
         composable("profile") {
             ProfileScreen(navController)
         }
-
+        // Register Screen
+        composable("register") {
+            RegisterScreen(
+                onNavigateToMain = { navController.navigate("main") { popUpTo("login") { inclusive = true } } }
+            )
+        }
         // Edit Screen with dynamic arguments
         composable(
             "editScreen/{fieldType}/{fieldValue}",

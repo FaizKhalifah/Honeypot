@@ -27,11 +27,13 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.R
+import com.praktikum.honeypot.Util.PreferencesHelper
 import com.praktikum.honeypot.ViewModel.ProfileViewModel
 
 @Composable
 fun ProfileScreen(navController: NavController) {
     val context = LocalContext.current
+    val preferencesHelper = PreferencesHelper(context)  // Initialize PreferencesHelper
     val profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory(context))
     val profile = profileViewModel.profile.collectAsState()
 
@@ -156,6 +158,7 @@ fun ProfileScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Logout Button
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
@@ -164,17 +167,34 @@ fun ProfileScreen(navController: NavController) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Update Profile",
+                text = "Logout",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
-                fontFamily = dmSansFont
+                fontFamily = dmSansFont,
+                modifier = Modifier.clickable {
+                    // Perform logout logic and navigate to LoginScreen
+                    profileViewModel.logout(
+                        onSuccess = {
+                            // Navigate to Login Screen after successful logout
+                            navController.navigate("login") {
+                                popUpTo("main") { inclusive = true } // Ensure we pop all previous screens
+                            }
+                        },
+                        onError = { errorMessage ->
+                            // Show error message if logout fails
+                            println("Logout Error: $errorMessage")
+                        }
+                    )
+                }
             )
         }
-
-        Spacer(modifier = Modifier.height(16.dp)) // Space above the navbar
     }
+
+    Spacer(modifier = Modifier.height(16.dp)) // Space above the navbar
 }
+
+
 
 
 @Composable

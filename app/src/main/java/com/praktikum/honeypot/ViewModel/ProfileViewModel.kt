@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.praktikum.honeypot.Data.Owner
 import com.praktikum.honeypot.Interface.ApiResponse
+import com.praktikum.honeypot.Util.PreferencesHelper
 import com.praktikum.honeypot.Util.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,7 @@ import retrofit2.awaitResponse
 
 class ProfileViewModel(context: Context) : ViewModel() {
     private val profileApiService = RetrofitClient.getProfileApiService(context)
-
+    private val preferencesHelper = PreferencesHelper(context)
     private val _profile = MutableStateFlow<Owner?>(null)
     val profile: StateFlow<Owner?> = _profile
 
@@ -99,6 +100,26 @@ class ProfileViewModel(context: Context) : ViewModel() {
                 onError("HTTP Error: ${e.message}")
             } catch (e: Exception) {
                 onError("Unexpected Error: ${e.message}")
+            }
+        }
+    }
+    fun logout(
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = profileApiService.logout().awaitResponse() // Call the logout API
+
+                if (response.isSuccessful) {
+                    // Clear the stored tokens if logout is successful
+                    preferencesHelper.clearTokens()
+                    onSuccess()
+                } else {
+                    onError("Failed to log out: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                onError("Logout failed: ${e.message}")
             }
         }
     }

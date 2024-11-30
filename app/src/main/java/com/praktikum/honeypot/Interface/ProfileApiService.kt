@@ -4,6 +4,7 @@ import com.praktikum.honeypot.Data.Owner
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.PUT
 
 data class ApiResponse(
@@ -19,4 +20,6 @@ interface ProfileApiService {
 
     @PUT("api/owner/change-password")
     fun changePassword(@Body passwordData: Map<String, String>): Call<ApiResponse>
+    @POST("api/owner/logout") // Using POST method for logout as per your API
+    fun logout(): Call<Void>
 }

@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.Navigation.BottomNavigationBar
+import com.praktikum.honeypot.Screen.Auth.LoginScreen
 import com.praktikum.honeypot.Screen.Home.HomeScreen
 import com.praktikum.honeypot.Screen.Partner.AddPartnerScreen
 import com.praktikum.honeypot.Screen.Partner.EditPartnerScreen
@@ -148,7 +149,7 @@ fun MainScreen() {
                     productList = productList,
                     onSave = {
                             updatedStockList ->
-                            updatedStockList.forEach { partnerStock ->
+                        updatedStockList.forEach { partnerStock ->
                             partnerViewModel.updatePartnerStock(
                                 partnerId = partnerId,
                                 productId = partnerStock.product_id,
@@ -193,7 +194,9 @@ fun MainScreen() {
             composable("report") { ReportScreen() }
 
             // Profile Screens
-            composable("profile") { ProfileScreen(navController) }
+            composable("profile") {
+                ProfileScreen(navController) // Pass navController to ProfileScreen
+            }
             composable(
                 route = "editScreen/{fieldType}/{fieldValue}",
                 arguments = listOf(
@@ -207,6 +210,12 @@ fun MainScreen() {
             }
             composable("editPasswordScreen") {
                 EditPasswordScreen(navController)
+            }
+            composable("login") {
+                LoginScreen(
+                    onNavigateToRegister = { navController.navigate("register") },
+                    onLoginSuccess = { navController.navigate("main") { popUpTo("login") { inclusive = true } } }
+                )
             }
         }
     }
