@@ -24,14 +24,18 @@ import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.R
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.praktikum.honeypot.Data.Product
 import com.praktikum.honeypot.Screen.Product.ProductCard
 import com.praktikum.honeypot.Screen.Product.ProductDetail
-
 @Composable
 fun PartnerScreen(
     onNavigateToAddPartner: () -> Unit,
@@ -43,6 +47,9 @@ fun PartnerScreen(
     )
     val partners by partnerViewModel.partners.collectAsState()
     val selectedPartner by partnerViewModel.selectedPartner.collectAsState()
+
+    // State untuk search bar
+    var searchText by remember { mutableStateOf("") }
 
     Scaffold(
         floatingActionButton = {
@@ -60,33 +67,68 @@ fun PartnerScreen(
             }
         }
     ) { paddingValues ->
-        if (selectedPartner != null) {
-            // Tampilkan halaman detail produk
-            PartnerDetail(
-                partner = selectedPartner!!,
-                onDismiss = { partnerViewModel.clearSelectedPartner() },
-                onEdit = { partner -> onNavigateToEditPartner(partner) },
-                onDelete = { partner ->
-                    partnerViewModel.deleteProduct(partner.partner_id)
-                    partnerViewModel.clearSelectedPartner()
-                }
-            )
-        } else {
-            // Tampilkan daftar partner
-            LazyColumn(
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.honeypot_logo),
+                contentDescription = "Honeypot Logo",
                 modifier = Modifier
-                    .padding(paddingValues)
-                    .padding(16.dp)
-            ) {
-                items(partners) { partner ->
-                    PartnerCard(
-                        partner = partner,
-                        onClick = { partnerViewModel.selectPartner(partner) }
-                    )
+                    .size(120.dp)
+                    .padding(bottom = 8.dp)
+            )
+            // Tambahkan Search Bar di atas
+            SearchBar(
+                searchText = searchText,
+                onSearchTextChange = { searchText = it }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (selectedPartner != null) {
+                PartnerDetail(
+                    partner = selectedPartner!!,
+                    onDismiss = { partnerViewModel.clearSelectedPartner() },
+                    onEdit = { partner -> onNavigateToEditPartner(partner) },
+                    onDelete = { partner ->
+                        partnerViewModel.deleteProduct(partner.partner_id)
+                        partnerViewModel.clearSelectedPartner()
+                    }
+                )
+            } else {
+                // Filter daftar partner berdasarkan teks pencarian
+                val filteredPartners = partners.filter { partner ->
+                    partner.name.contains(searchText, ignoreCase = true)
+                }
+
+                LazyColumn {
+                    items(filteredPartners) { partner ->
+                        PartnerCard(
+                            partner = partner,
+                            onClick = { partnerViewModel.selectPartner(partner) }
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
+    androidx.compose.material3.TextField(
+        value = searchText,
+        onValueChange = onSearchTextChange,
+        placeholder = { Text(text = "Search partner...") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        colors = androidx.compose.material3.TextFieldDefaults.textFieldColors(
+            containerColor = Color.White
+        )
+    )
 }
 
 @Composable
