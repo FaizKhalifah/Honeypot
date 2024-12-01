@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -24,6 +25,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.praktikum.honeypot.Factory.AppViewModelFactory
+import com.praktikum.honeypot.Factory.AuthViewModelFactory
 import com.praktikum.honeypot.Navigation.BottomNavigationBar
 import com.praktikum.honeypot.Screen.Auth.LoginScreen
 import com.praktikum.honeypot.Screen.Auth.RegisterScreen
@@ -42,6 +44,7 @@ import com.praktikum.honeypot.Screen.Profile.ProfileScreen
 import com.praktikum.honeypot.Screen.Report.ReportScreen
 import com.praktikum.honeypot.Util.PreferencesHelper
 import com.praktikum.honeypot.ViewModel.AppStateViewModel
+import com.praktikum.honeypot.ViewModel.AuthViewModel
 import com.praktikum.honeypot.ViewModel.HomeViewModel
 import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.ViewModel.ProductViewModel
@@ -62,6 +65,9 @@ fun SplashScreen() {
 fun MainScreen() {
     val navController = rememberNavController()
     val context = LocalContext.current
+    val authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(context)
+    )
 
     // Assuming you use AppStateViewModel to track login status
     val appStateViewModel: AppStateViewModel = viewModel()
@@ -93,15 +99,27 @@ fun MainScreen() {
     val partnerViewModel: PartnerViewModel = viewModel(factory = AppViewModelFactory(context))
     val homeViewModel: HomeViewModel = viewModel(factory = AppViewModelFactory(context))
     val profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory(context))
-
     var currentRoute by remember { mutableStateOf("") }
 
     // Track the current route
-    LaunchedEffect(navController) {
-        navController.currentBackStackEntryFlow.collect { backStackEntry ->
-            currentRoute = backStackEntry.destination.route ?: ""
+    LaunchedEffect(Unit) {
+        val refreshToken = preferencesHelper.getRefreshToken()
+        if (!isTokenValid && refreshToken != null) {
+            authViewModel.refreshAccessToken(
+                onSuccess = {
+                    appStateViewModel.logIn()
+                    isLoading = false
+                },
+                onError = {
+                    appStateViewModel.logOut()
+                    isLoading = false
+                }
+            )
+        } else {
+            isLoading = false
         }
     }
+
 
     if (isLoading) {
         // Show loading screen or splash screen while validating token
