@@ -1,6 +1,7 @@
 package com.praktikum.honeypot.ViewModel
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
 import com.praktikum.honeypot.Data.LoginRequest
 import com.praktikum.honeypot.Data.LoginResponse
 import com.praktikum.honeypot.Data.RefreshTokenRequest
@@ -14,7 +15,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.concurrent.TimeUnit
 
-class AuthViewModel(private val context: Context) {
+class AuthViewModel(private val context: Context) : ViewModel() {
     private val preferencesHelper = PreferencesHelper(context)
 
     // Existing login function
@@ -47,7 +48,6 @@ class AuthViewModel(private val context: Context) {
     }
 
 
-    // Refresh access token manually (to be used for forced refresh)
     fun refreshAccessToken(onSuccess: () -> Unit, onError: (String) -> Unit) {
         val refreshToken = preferencesHelper.getRefreshToken()
         if (refreshToken != null) {
@@ -80,6 +80,7 @@ class AuthViewModel(private val context: Context) {
             onError("No refresh token available")
         }
     }
+
 
     fun register(
         username: String,
