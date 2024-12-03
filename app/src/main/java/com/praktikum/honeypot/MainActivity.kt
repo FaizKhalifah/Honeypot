@@ -22,30 +22,38 @@ class MainActivity : ComponentActivity() {
         // Variable to determine the start destination
         var startDestination = "login"
 
-        if (refreshToken != null && (System.currentTimeMillis() > accessTokenExpiry)) {
-            // Token is expired but refresh token exists, refresh access token
-            authViewModel.refreshAccessToken(
-                onSuccess = {
-                    // Access token refreshed successfully, set start destination to "main"
-                    startDestination = "main"
-                },
-                onError = { error ->
-                    // If refresh token fails, clear tokens and navigate to login
-                    preferencesHelper.clearTokens()
-                    startDestination = "login"
-                }
-            )
-        } else if (refreshToken != null) {
-            // Access token is still valid
-            startDestination = "main"
+        if (refreshToken != null) {
+            if (System.currentTimeMillis() > accessTokenExpiry) {
+                // Token is expired, try refreshing the access token
+                authViewModel.refreshAccessToken(
+                    onSuccess = {
+                        // Access token refreshed successfully, proceed to main screen
+                        startDestination = "main"
+                        startApp(startDestination)
+                    },
+                    onError = { error ->
+                        // Refresh token failed, clear stored tokens
+                        preferencesHelper.clearTokens()
+                        startDestination = "login"
+                        startApp(startDestination)
+                    }
+                )
+            } else {
+                // Access token is still valid
+                startDestination = "main"
+                startApp(startDestination)
+            }
+        } else {
+            // No refresh token exists, redirect to login
+            startApp(startDestination)
         }
+    }
 
+    private fun startApp(startDestination: String) {
         setContent {
             MaterialTheme {
-                AppNavHost(startDestination = startDestination) // Dynamically pass start destination
+                AppNavHost(startDestination = startDestination)
             }
         }
     }
 }
-
-
