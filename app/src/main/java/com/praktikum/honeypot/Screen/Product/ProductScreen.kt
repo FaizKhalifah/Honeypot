@@ -153,7 +153,7 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
                 )
             } else {
                 Image(
-                    painter = painterResource(R.drawable.sugarcane),
+                    painter = painterResource(R.drawable.placeholder_image),
                     contentDescription = null,
                     modifier = Modifier.size(100.dp),
                     contentScale = ContentScale.Crop
