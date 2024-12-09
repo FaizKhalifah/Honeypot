@@ -5,10 +5,17 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.praktikum.honeypot.Data.Product
+import com.praktikum.honeypot.Interface.ProductApiService
+import com.praktikum.honeypot.Util.BitmapUtils
 import com.praktikum.honeypot.Util.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 class ProductViewModel(private val context: Context) : ViewModel() {
     private val _products = MutableStateFlow<List<Product>>(emptyList())
@@ -25,70 +32,117 @@ class ProductViewModel(private val context: Context) : ViewModel() {
             try {
                 val productApiService = RetrofitClient.getProductApiService(context)
                 val response = productApiService.getProducts()
-                _products.value = response // Atur data produk dari API di sini
+                _products.value = response // Set product data from API
             } catch (e: Exception) {
-                _products.value = emptyList() // Tangani error
+                _products.value = emptyList() // Handle error
+                Log.e("ProductViewModel", "Error loading products: ${e.message}")
             }
         }
     }
-
 
     fun selectProduct(product: Product) {
         _selectedProduct.value = product
     }
 
-    // Fungsi untuk menghapus produk yang dipilih
+    // Function to clear selected product
     fun clearSelectedProduct() {
         _selectedProduct.value = null
     }
 
     fun getAllProducts(): List<Product> {
-        return products.value // Pastikan `products` adalah StateFlow<List<Product>> yang telah diinisialisasi.
+        return products.value
     }
 
-
-
-    fun addProduct(newProduct: Product, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun addProduct(
+        newProduct: Product,
+        imageFile: File?,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             try {
                 val productApiService = RetrofitClient.getProductApiService(context)
-                val response = productApiService.addProduct(newProduct) // Tidak perlu .execute()
+
+                // Prepare multipart request
+                val namePart = newProduct.name.toRequestBody("text/plain".toMediaTypeOrNull())
+                val descriptionPart = newProduct.description.toRequestBody("text/plain".toMediaTypeOrNull())
+                val stockPart = newProduct.stock.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val pricePart = newProduct.price_per_unit.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+
+                val imagePart = imageFile?.let {
+                    MultipartBody.Part.createFormData(
+                        "image",
+                        it.name,
+                        it.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                    )
+                }
+
+                val response = productApiService.addProduct(
+                    namePart,
+                    descriptionPart,
+                    stockPart,
+                    pricePart,
+                    imagePart
+                )
 
                 if (response.isSuccessful) {
                     onSuccess()
-                    loadProducts() // Refresh data produk
+                    loadProducts() // Refresh product list
                 } else {
                     onError("Failed to add product: ${response.message()}")
                 }
             } catch (e: Exception) {
                 onError("Error: ${e.message}")
+                Log.e("ProductViewModel", "Error adding product: ${e.message}")
             }
         }
     }
 
-    fun getProductById(productId: Int): Product {
-        return products.value.find { it.product_id == productId }
-            ?: throw IllegalArgumentException("Product not found")
-    }
-
-
-
-    fun updateProduct(updatedProduct: Product) {
+    fun updateProduct(
+        updatedProduct: Product,
+        imageFile: File?,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
-            val productApiService = RetrofitClient.getProductApiService(context)
+            try {
+                val productApiService = RetrofitClient.getProductApiService(context)
 
-            // Kirim permintaan ke API untuk memperbarui produk
-            val response = productApiService.updateProduct(updatedProduct.product_id, updatedProduct)
-            if (response.isSuccessful) {
-                // Perbarui data lokal
-                _products.value = _products.value.map {
-                    if (it.product_id == updatedProduct.product_id) updatedProduct else it
+                // Prepare multipart request
+                val namePart = updatedProduct.name.toRequestBody("text/plain".toMediaTypeOrNull())
+                val descriptionPart = updatedProduct.description.toRequestBody("text/plain".toMediaTypeOrNull())
+                val stockPart = updatedProduct.stock.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val pricePart = updatedProduct.price_per_unit.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+
+                val imagePart = imageFile?.let {
+                    MultipartBody.Part.createFormData(
+                        "image",
+                        it.name,
+                        it.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                    )
                 }
+
+                val response = productApiService.updateProduct(
+                    updatedProduct.product_id,
+                    namePart,
+                    descriptionPart,
+                    stockPart,
+                    pricePart,
+                    imagePart
+                )
+
+                if (response.isSuccessful) {
+                    onSuccess()
+                    loadProducts() // Refresh product list
+                } else {
+                    onError("Failed to update product: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                onError("Error: ${e.message}")
+                Log.e("ProductViewModel", "Error updating product: ${e.message}")
             }
         }
     }
-
-
 
     fun deleteProduct(productId: Int) {
         viewModelScope.launch {
@@ -108,8 +162,8 @@ class ProductViewModel(private val context: Context) : ViewModel() {
         }
     }
 
-
-
-
+    fun getProductById(productId: Int): Product {
+        return products.value.find { it.product_id == productId }
+            ?: throw IllegalArgumentException("Product not found")
+    }
 }
-
