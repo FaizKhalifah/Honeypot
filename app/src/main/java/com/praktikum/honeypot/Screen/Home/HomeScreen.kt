@@ -312,12 +312,22 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
             .height(300.dp)
             .padding(8.dp)
             .clickable(onClick = onClick)  // Navigate on click
-    ){
+    ) {
         Box {
             // Image Section
+            val painter = if (!product.image_url.isNullOrEmpty()) {
+                rememberAsyncImagePainter(
+                    model = product.image_url,
+                    placeholder = painterResource(R.drawable.placeholder_image),
+                    error = painterResource(R.drawable.placeholder_image)
+                )
+            } else {
+                painterResource(R.drawable.placeholder_image)
+            }
+
             Image(
-                painter = rememberAsyncImagePainter("https://res.cloudinary.com/dxvcpxgzs/image/upload/v1679084208/samples/landscapes/architecture-signs.jpg"),
-                contentDescription = null,
+                painter = painter,
+                contentDescription = product.name,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp),
@@ -398,6 +408,7 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
         }
     }
 }
+
 
 @Composable
 fun PartnerCard(partner: Partner, onClick: () -> Unit) {
