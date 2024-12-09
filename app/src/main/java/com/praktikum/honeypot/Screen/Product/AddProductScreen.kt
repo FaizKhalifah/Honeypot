@@ -107,7 +107,7 @@ fun AddProductScreen(
                     )
                 } else {
                     Image(
-                        painter = painterResource(id = R.drawable.sugarcane),
+                        painter = painterResource(id = R.drawable.placeholder_image),
                         contentDescription = "Placeholder Image",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

@@ -10,10 +10,10 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,7 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -40,7 +40,7 @@ fun CameraPreview(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier) { // Hapus fillMaxSize di sini
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -53,14 +53,21 @@ fun CameraPreview(
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
                 val cameraProvider = cameraProviderFuture.get()
 
+                // Ubah resolusi target ke 720x720 untuk aspek rasio 1:1
+                val squareResolution = android.util.Size(720, 720)
+
+                // Inisialisasi Preview
                 val preview = Preview.Builder()
+                    .setTargetResolution(squareResolution)
                     .build()
                     .also {
                         it.setSurfaceProvider(previewView?.surfaceProvider)
                     }
 
+                // Inisialisasi ImageCapture
                 imageCapture = ImageCapture.Builder()
-                    .setTargetResolution(android.util.Size(1080, 1920))
+                    .setTargetResolution(squareResolution)
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                     .build()
 
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -84,13 +91,16 @@ fun CameraPreview(
             factory = { ctx ->
                 val view = androidx.camera.view.PreviewView(ctx)
                 view.layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                // Sesuaikan scale type untuk menjaga aspek rasio 1:1
+                view.scaleType = androidx.camera.view.PreviewView.ScaleType.FIT_CENTER
                 previewView = view
                 view
             },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize() // Isi parent sesuai ukuran yang ditentukan
         )
 
-        // Capture Button
+        // Tombol Capture
         Button(
             onClick = {
                 val imageCaptureUseCase = imageCapture ?: return@Button
@@ -117,22 +127,22 @@ fun CameraPreview(
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(16.dp)
+                .padding(8.dp)
         ) {
             Text("Capture")
         }
 
-        // Close Button
+        // Tombol Close
         IconButton(
             onClick = { onClose() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .padding(8.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_close),
                 contentDescription = "Close Camera",
-                modifier = Modifier.size(24.dp)
+                tint = Color.White
             )
         }
     }

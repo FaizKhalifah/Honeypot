@@ -9,11 +9,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -91,25 +94,32 @@ fun EditProductScreen(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Image Preview
+            // Image Preview with 1:1 Aspect Ratio
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .aspectRatio(1f) // Maintain 1:1 aspect ratio
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.LightGray)
                     .clickable { onTakePhotoClick() },
+                contentAlignment = Alignment.Center
             ) {
                 if (selectedImageUri != null) {
                     AsyncImage(
                         model = selectedImageUri,
                         contentDescription = "Selected Image",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else {
                     Image(
-                        painter = painterResource(id = R.drawable.sugarcane),
+                        painter = painterResource(id = R.drawable.placeholder_image),
                         contentDescription = "Placeholder Image",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -119,8 +129,12 @@ fun EditProductScreen(
                     painter = painterResource(id = R.drawable.camera),
                     contentDescription = "Camera Icon",
                     modifier = Modifier
-                        .size(48.dp)
-                        .align(Alignment.Center)
+                        .size(32.dp)
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .padding(8.dp)
                 )
             }
 
@@ -207,23 +221,39 @@ fun EditProductScreen(
             }
         }
 
-        // Show Camera Preview as a full-screen overlay
+        // Show Camera Preview as an Overlay within a Square Area
         if (showCamera) {
-            CameraPreview(
-                onImageCaptured = { file ->
-                    selectedImageFile = file
-                    selectedImageUri = Uri.fromFile(file)
-                    showCamera = false
-                },
-                onError = { exc ->
-                    Toast.makeText(context, "Image capture failed: ${exc.message}", Toast.LENGTH_SHORT).show()
-                    showCamera = false
-                },
-                onClose = { showCamera = false },
+            // Semi-transparent background to focus on the camera preview
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.8f)) // Optional: Dim the background
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .clickable { /* Do nothing to prevent click-through */ }
             )
+
+            // Centered Square Camera Preview
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f) // 80% of the screen width
+                    .aspectRatio(1f) // 1:1 aspect ratio
+                    .align(Alignment.Center)
+                    .background(Color.Black)
+            ) {
+                CameraPreview(
+                    onImageCaptured = { file ->
+                        selectedImageFile = file
+                        selectedImageUri = Uri.fromFile(file)
+                        showCamera = false
+                    },
+                    onError = { exc ->
+                        Toast.makeText(context, "Image capture failed: ${exc.message}", Toast.LENGTH_SHORT).show()
+                        showCamera = false
+                    },
+                    onClose = { showCamera = false },
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            }
         }
     }
 }

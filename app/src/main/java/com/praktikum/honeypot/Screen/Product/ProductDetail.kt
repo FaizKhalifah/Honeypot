@@ -63,7 +63,7 @@ fun ProductDetail(
                 )
             } else {
                 Image(
-                    painter = painterResource(R.drawable.sugarcane),
+                    painter = painterResource(R.drawable.placeholder_image),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
