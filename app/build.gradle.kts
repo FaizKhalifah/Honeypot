@@ -73,6 +73,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.coil.compose)
-    implementation (libs.androidx.material.icons.extended) // Replace with the latest version if needed
-
+    implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation (libs.androidx.camera.lifecycle)
+    implementation (libs.androidx.camera.view)
+    implementation (libs.okhttp)
+    implementation (libs.okhttp3.logging.interceptor)
+    implementation ("com.google.accompanist:accompanist-permissions:0.30.1")
 }

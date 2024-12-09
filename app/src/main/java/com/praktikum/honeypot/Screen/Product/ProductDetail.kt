@@ -2,27 +2,17 @@ package com.praktikum.honeypot.Screen.Product
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.material.icons.Icons
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.praktikum.honeypot.Data.Product
+import androidx.compose.ui.res.painterResource
 import com.praktikum.honeypot.R
 
 @Composable
@@ -39,18 +29,18 @@ fun ProductDetail(
         colors = CardDefaults.cardColors(containerColor = Color.LightGray)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Tombol kembali (ikon panah)
+            // Back button and title
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter = painterResource(R.drawable.arrow_back), // Pastikan file drawable ada
+                    painter = painterResource(R.drawable.arrow_back), // Ensure drawable exists
                     contentDescription = "Back",
                     modifier = Modifier
                         .size(24.dp)
                         .padding(8.dp)
-                        .clickable { onDismiss() } // Fungsi kembali
+                        .clickable { onDismiss() } // Back function
                 )
                 Text(
                     text = "Detail Produk",
@@ -59,9 +49,30 @@ fun ProductDetail(
                 )
             }
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Informasi Produk
+            // Product Image
+            if (product.image_url != null) {
+                AsyncImage(
+                    model = product.image_url,
+                    contentDescription = "Product Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.sugarcane),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // Product Information
             Text(
                 text = product.name,
                 style = MaterialTheme.typography.headlineSmall,
@@ -83,17 +94,19 @@ fun ProductDetail(
                 color = Color.Black
             )
 
-            Spacer(modifier = Modifier.padding(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Tombol Edit dan Delete
+            // Edit and Delete Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Tombol Edit
+                // Edit Button
                 ElevatedCard(
                     onClick = { onEdit(product) },
-                    modifier = Modifier.weight(1f).padding(end = 8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Blue)
                 ) {
                     Text(
@@ -104,7 +117,7 @@ fun ProductDetail(
                     )
                 }
 
-                // Tombol Delete
+                // Delete Button
                 ElevatedCard(
                     onClick = { onDelete(product) },
                     modifier = Modifier.weight(1f),

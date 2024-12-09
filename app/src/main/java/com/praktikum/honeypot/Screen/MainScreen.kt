@@ -193,17 +193,15 @@ fun MainScreen() {
                         navController = navController
                     )
                 }
+
                 composable("editProduct/{productId}") { backStackEntry ->
                     val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
                     val product = productViewModel.getProductById(productId)
 
                     EditProductScreen(
                         product = product,
-                        onSave = { updatedProduct ->
-                            productViewModel.updateProduct(updatedProduct)
-                            navController.navigateUp()
-                        },
-                        onCancel = { navController.navigateUp() }
+                        viewModel = productViewModel,
+                        navController = navController
                     )
                 }
 

@@ -15,6 +15,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,12 +26,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.praktikum.honeypot.Data.Product
 import com.praktikum.honeypot.ViewModel.ProductViewModel
 import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
 import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.R
 @Composable
@@ -131,7 +134,7 @@ fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
 @Composable
 fun ProductCard(product: Product, onClick: () -> Unit) {
     ElevatedCard(
-        onClick = onClick, // Fungsi klik
+        onClick = onClick, // Click function
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp
         ),
@@ -141,25 +144,35 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
-            Image(
-                painter = painterResource(R.drawable.sugarcane),
-                contentDescription = null,
-                modifier = Modifier.size(100.dp)
-            )
+            if (product.image_url != null) {
+                AsyncImage(
+                    model = product.image_url,
+                    contentDescription = "Product Image",
+                    modifier = Modifier.size(100.dp),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.sugarcane),
+                    contentDescription = null,
+                    modifier = Modifier.size(100.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column {
-                Text(text = product.name, color = Color.Black)
-                Text(text = product.description, color = Color.Gray)
+                Text(text = product.name, color = Color.Black, style = MaterialTheme.typography.titleMedium)
+                Text(text = product.description, color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
                 Row {
-                    Column(modifier = Modifier.padding(1.dp, 0.dp, 60.dp, 0.dp)) {
-                        Text(text = "Harga", color = Color.Gray)
-                        Text(text = "Rp ${product.price_per_unit}")
+                    Column(modifier = Modifier.padding(end = 60.dp)) {
+                        Text(text = "Harga", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                        Text(text = "Rp ${product.price_per_unit}", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
                     }
                     Column {
-                        Text(text = "Stok", color = Color.Gray)
-                        Text(text = "${product.stock}")
+                        Text(text = "Stok", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                        Text(text = "${product.stock}", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
