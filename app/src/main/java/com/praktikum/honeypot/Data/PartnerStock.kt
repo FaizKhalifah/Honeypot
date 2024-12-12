@@ -5,5 +5,5 @@ data class PartnerStock(
     val product_id: Int,
     val partner_id: Int,
     val stock: Int,
-    val Product: Product
+    val Product: Product,
 )

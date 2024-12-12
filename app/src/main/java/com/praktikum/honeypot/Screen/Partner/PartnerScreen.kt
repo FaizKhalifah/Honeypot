@@ -25,6 +25,7 @@ import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.R
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import coil.compose.rememberImagePainter
 import com.praktikum.honeypot.Data.Product
 import com.praktikum.honeypot.Screen.Product.ProductCard
 import com.praktikum.honeypot.Screen.Product.ProductDetail
@@ -71,15 +73,18 @@ fun PartnerScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(16.dp)
+                .offset(y = -90.dp) // Moves everything up (including logo)
         ) {
+            // Logo positioned top-left with offset
             Image(
                 painter = painterResource(id = R.drawable.honeypot_logo),
                 contentDescription = "Honeypot Logo",
                 modifier = Modifier
-                    .size(120.dp)
-                    .padding(bottom = 8.dp)
+                    .size(125.dp)
+                    .padding(start = 16.dp, top = 16.dp) // Offsetting logo from top-left corner
             )
-            // Tambahkan Search Bar di atas
+
+            // Add search bar just below the logo
             SearchBar(
                 searchText = searchText,
                 onSearchTextChange = { searchText = it }
@@ -116,6 +121,8 @@ fun PartnerScreen(
     }
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
@@ -145,7 +152,7 @@ fun PartnerCard(partner: Partner, onClick: () -> Unit) {
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
             Image(
-                painter = painterResource(R.drawable.store),
+                painter = rememberImagePainter(partner.imageUrl), // Use image URL from partner data
                 contentDescription = null,
                 modifier = Modifier.size(100.dp)
             )
@@ -159,3 +166,5 @@ fun PartnerCard(partner: Partner, onClick: () -> Unit) {
         }
     }
 }
+
+
