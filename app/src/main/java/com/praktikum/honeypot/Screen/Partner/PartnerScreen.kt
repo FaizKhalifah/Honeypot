@@ -1,6 +1,8 @@
 package com.praktikum.honeypot.Screen.Partner
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +26,7 @@ import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.R
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,12 +37,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
-import com.praktikum.honeypot.Data.Product
-import com.praktikum.honeypot.Screen.Product.ProductCard
-import com.praktikum.honeypot.Screen.Product.ProductDetail
+
 @Composable
 fun PartnerScreen(
+    navController: NavController, // Add NavController here
     onNavigateToAddPartner: () -> Unit,
     onNavigateToEditPartner: (Partner) -> Unit,
 ) {
@@ -48,9 +51,8 @@ fun PartnerScreen(
         factory = AppViewModelFactory(context)
     )
     val partners by partnerViewModel.partners.collectAsState()
-    val selectedPartner by partnerViewModel.selectedPartner.collectAsState()
 
-    // State untuk search bar
+    // State for search bar
     var searchText by remember { mutableStateOf("") }
 
     Scaffold(
@@ -69,58 +71,57 @@ fun PartnerScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(16.dp)
-                .offset(y = -90.dp) // Moves everything up (including logo)
+                .fillMaxSize() // Ensure the box takes up the full available space
         ) {
-            // Logo positioned top-left with offset
-            Image(
-                painter = painterResource(id = R.drawable.honeypot_logo),
-                contentDescription = "Honeypot Logo",
+            Column(
                 modifier = Modifier
-                    .size(125.dp)
-                    .padding(start = 16.dp, top = 16.dp) // Offsetting logo from top-left corner
-            )
-
-            // Add search bar just below the logo
-            SearchBar(
-                searchText = searchText,
-                onSearchTextChange = { searchText = it }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (selectedPartner != null) {
-                PartnerDetail(
-                    partner = selectedPartner!!,
-                    onDismiss = { partnerViewModel.clearSelectedPartner() },
-                    onEdit = { partner -> onNavigateToEditPartner(partner) },
-                    onDelete = { partner ->
-                        partnerViewModel.deleteProduct(partner.partner_id)
-                        partnerViewModel.clearSelectedPartner()
-                    }
+                    .padding(16.dp)
+                    .offset(y = -90.dp) // Keeps the logo offset from top-left
+            ) {
+                // Logo positioned top-left with offset
+                Image(
+                    painter = painterResource(id = R.drawable.honeypot_logo),
+                    contentDescription = "Honeypot Logo",
+                    modifier = Modifier
+                        .size(125.dp)
+                        .padding(start = 16.dp, top = 16.dp) // Offsetting logo from top-left corner
                 )
-            } else {
-                // Filter daftar partner berdasarkan teks pencarian
-                val filteredPartners = partners.filter { partner ->
-                    partner.name.contains(searchText, ignoreCase = true)
-                }
 
-                LazyColumn {
-                    items(filteredPartners) { partner ->
-                        PartnerCard(
-                            partner = partner,
-                            onClick = { partnerViewModel.selectPartner(partner) }
-                        )
-                    }
+                // Add search bar just below the logo
+                SearchBar(
+                    searchText = searchText,
+                    onSearchTextChange = { searchText = it }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // LazyColumn to display the partner cards and fill remaining space
+            val filteredPartners = partners.filter { partner ->
+                partner.name.contains(searchText, ignoreCase = true)
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .padding(top = 150.dp) // Adjust to give space for logo and search bar
+                    .fillMaxSize() // Ensure this takes all the remaining space
+            ) {
+                items(filteredPartners) { partner ->
+                    PartnerCard(
+                        partner = partner,
+                        onClick = {
+                            // Navigate to PartnerDetail screen
+                            navController.navigate("partnerDetail/${partner.partner_id}")
+                        }
+                    )
                 }
             }
         }
     }
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,7 +142,7 @@ fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
 @Composable
 fun PartnerCard(partner: Partner, onClick: () -> Unit) {
     ElevatedCard(
-        onClick = onClick, // Fungsi klik
+        onClick = onClick, // Use the passed in onClick lambda
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp
         ),
