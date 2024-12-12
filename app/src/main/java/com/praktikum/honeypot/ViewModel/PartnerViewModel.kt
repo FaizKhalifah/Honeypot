@@ -11,6 +11,12 @@ import com.praktikum.honeypot.Util.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 class PartnerViewModel(private val context: Context) : ViewModel() {
     private val _partners = MutableStateFlow<List<Partner>>(emptyList())
@@ -42,23 +48,46 @@ class PartnerViewModel(private val context: Context) : ViewModel() {
         _selectedPartner.value = null
     }
 
-    fun addPartner(newPartner: Partner, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun addPartner(
+        newPartner: Partner,
+        imageFile: File?,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             try {
                 val partnerApiService = RetrofitClient.getPartnerApiService(context)
-                val response = partnerApiService.addPartner(newPartner) // Tidak perlu .execute()
+
+                // Prepare multipart request
+                val namePart = newPartner.name.toRequestBody("text/plain".toMediaTypeOrNull())
+                val addressPart = newPartner.address.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                val imagePart = imageFile?.let {
+                    MultipartBody.Part.createFormData(
+                        "image",
+                        it.name,
+                        it.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                    )
+                }
+
+                val response = partnerApiService.addPartner(
+                    namePart,
+                    addressPart,
+                    imagePart
+                )
 
                 if (response.isSuccessful) {
                     onSuccess()
-                    loadPartners() // Refresh data produk
+                    loadPartners() // Reload partners after adding
                 } else {
-                    onError("Failed to add partner: ${response.message()}")
+                    onError("Failed to add partner")
                 }
             } catch (e: Exception) {
                 onError("Error: ${e.message}")
             }
         }
     }
+
 
     fun getPartnerById(partnerId: Int): Partner {
         return partners.value.find { it.partner_id == partnerId}
@@ -110,9 +139,6 @@ class PartnerViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
-
-
-
 
 
     fun deleteProduct(partnerId: Int) {
