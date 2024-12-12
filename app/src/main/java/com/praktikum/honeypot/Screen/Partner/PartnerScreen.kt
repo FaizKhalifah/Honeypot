@@ -151,9 +151,16 @@ fun PartnerCard(partner: Partner, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
+            // Check if the partner has a valid image URL, otherwise use the placeholder image
+            val imagePainter = if (partner.imageUrl.isNullOrEmpty()) {
+                painterResource(id = R.drawable.placeholder_image) // Use the placeholder image
+            } else {
+                rememberImagePainter(partner.imageUrl) // Use the image URL from the partner data
+            }
+
             Image(
-                painter = rememberImagePainter(partner.imageUrl), // Use image URL from partner data
-                contentDescription = null,
+                painter = imagePainter,
+                contentDescription = "Partner Image",
                 modifier = Modifier.size(100.dp)
             )
 
@@ -166,5 +173,3 @@ fun PartnerCard(partner: Partner, onClick: () -> Unit) {
         }
     }
 }
-
-
