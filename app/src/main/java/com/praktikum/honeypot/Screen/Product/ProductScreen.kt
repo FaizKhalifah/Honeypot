@@ -1,9 +1,12 @@
 package com.praktikum.honeypot.Screen.Product
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -51,7 +54,7 @@ fun ProductScreen(
     val products by productViewModel.products.collectAsState()
     val selectedProduct by productViewModel.selectedProduct.collectAsState()
 
-    // State untuk search bar
+    // State for search bar
     var searchText by remember { mutableStateOf("") }
 
     Scaffold(
@@ -68,48 +71,135 @@ fun ProductScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(16.dp)
-                .offset(y = -75.dp) // Moves everything up (including logo)
+                .fillMaxSize() // Ensure the Box takes the full available space
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.honeypot_logo),
-                contentDescription = "Honeypot Logo",
+            Column(
                 modifier = Modifier
-                    .size(120.dp)
-                    .padding(bottom = 8.dp)
-            )
-            // Tambahkan Search Bar di atas
-            SearchBar(
-                searchText = searchText,
-                onSearchTextChange = { searchText = it }
-            )
+                    .padding(16.dp)
+                    .offset(y = -90.dp) // Keeps the logo offset from top
+            ) {
+                // Logo positioned top-left with offset
+                Image(
+                    painter = painterResource(id = R.drawable.honeypot_logo),
+                    contentDescription = "Honeypot Logo",
+                    modifier = Modifier
+                        .size(125.dp)
+                        .padding(start = 16.dp, top = 16.dp) // Offset logo from the top-left corner
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // Add search bar just below the logo
+                SearchBar(
+                    searchText = searchText,
+                    onSearchTextChange = { searchText = it }
+                )
 
-            if (selectedProduct != null) {
-                ProductDetail(
-                    product = selectedProduct!!,
-                    onDismiss = { productViewModel.clearSelectedProduct() },
-                    onEdit = { product -> onNavigateToEditProduct(product) },
-                    onDelete = { product ->
-                        productViewModel.deleteProduct(product.product_id)
-                        productViewModel.clearSelectedProduct()
-                    }
+                Spacer(modifier = Modifier.height(16.dp)) // Spacer between search and products
+            }
+
+            // LazyColumn to display the product cards and fill remaining space
+            val filteredProducts = products.filter { product ->
+                product.name.contains(searchText, ignoreCase = true)
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .padding(top = 150.dp) // Adjust to give space for logo and search bar
+                    .fillMaxSize() // Ensure this takes all the remaining space
+            ) {
+                items(filteredProducts) { product ->
+                    ProductCard(
+                        product = product,
+                        onClick = { onNavigateToProductDetail(product.product_id) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProductCard(product: Product, onClick: () -> Unit) {
+    ElevatedCard(
+        onClick = onClick, // Click function
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        modifier = Modifier
+            .fillMaxWidth() // Full width for product card
+            .padding(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(modifier = Modifier.padding(16.dp)) {
+            // Product image
+            if (product.image_url != null) {
+                AsyncImage(
+                    model = product.image_url,
+                    contentDescription = "Product Image",
+                    modifier = Modifier
+                        .size(150.dp) // Larger size for image
+                        .padding(end = 16.dp),
+                    contentScale = ContentScale.Crop
                 )
             } else {
-                // Filter daftar produk berdasarkan teks pencarian
-                val filteredProducts = products.filter { product ->
-                    product.name.contains(searchText, ignoreCase = true)
-                }
+                Image(
+                    painter = painterResource(R.drawable.placeholder_image),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(150.dp) // Larger placeholder size
+                        .padding(end = 16.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
-                LazyColumn {
-                    items(filteredProducts) { product ->
-                        ProductCard(
-                            product = product,
-                            onClick = { onNavigateToProductDetail(product.product_id) }
+            // Product text information
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = product.name,
+                    color = Color.Black,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = product.description,
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                ) {
+                    // Price Column
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Price",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "Rp ${product.price_per_unit}",
+                            color = Color.Black,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    // Stock Column
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Stock",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = "${product.stock}",
+                            color = Color.Black,
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
@@ -133,51 +223,5 @@ fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
     )
 }
 
-@Composable
-fun ProductCard(product: Product, onClick: () -> Unit) {
-    ElevatedCard(
-        onClick = onClick, // Click function
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Row(modifier = Modifier.padding(16.dp)) {
-            if (product.image_url != null) {
-                AsyncImage(
-                    model = product.image_url,
-                    contentDescription = "Product Image",
-                    modifier = Modifier.size(100.dp),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Image(
-                    painter = painterResource(R.drawable.placeholder_image),
-                    contentDescription = null,
-                    modifier = Modifier.size(100.dp),
-                    contentScale = ContentScale.Crop
-                )
-            }
 
-            Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
-                Text(text = product.name, color = Color.Black, style = MaterialTheme.typography.titleMedium)
-                Text(text = product.description, color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
-                Row {
-                    Column(modifier = Modifier.padding(end = 60.dp)) {
-                        Text(text = "Harga", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
-                        Text(text = "Rp ${product.price_per_unit}", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Column {
-                        Text(text = "Stok", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
-                        Text(text = "${product.stock}", color = Color.Black, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-        }
-    }
-}

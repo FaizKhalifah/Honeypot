@@ -226,12 +226,14 @@ fun MainScreen() {
                 // Partner Screens
                 composable("partner") {
                     PartnerScreen(
+                        navController = navController, // Pass the navController here
                         onNavigateToAddPartner = { navController.navigate("addPartner") },
                         onNavigateToEditPartner = { partner ->
                             navController.navigate("editPartner/${partner.partner_id}")
                         }
                     )
                 }
+
                 composable("addPartner") {
                     AddPartnerScreen(
                         viewModel = partnerViewModel,
@@ -291,6 +293,7 @@ fun MainScreen() {
                         }
                     )
                 }
+
 
                 // Report Screen
                 composable("report") { ReportScreen() }
