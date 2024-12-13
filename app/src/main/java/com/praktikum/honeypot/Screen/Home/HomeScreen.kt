@@ -412,6 +412,9 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
 
 @Composable
 fun PartnerCard(partner: Partner, onClick: () -> Unit) {
+    // Check if imageUrl is null and set placeholder if needed
+    val imageUrl = partner.imageUrl ?: R.drawable.placeholder_image // Replace with your drawable resource
+
     Card(
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, Color.LightGray),
@@ -423,9 +426,13 @@ fun PartnerCard(partner: Partner, onClick: () -> Unit) {
             .clickable(onClick = onClick)  // Navigate on click
     ) {
         Box {
-            // Image Section
+            // Image Section with a fallback to placeholder image
             Image(
-                painter = rememberAsyncImagePainter("https://res.cloudinary.com/dxvcpxgzs/image/upload/v1679084208/samples/landscapes/architecture-signs.jpg"),
+                painter = rememberAsyncImagePainter(
+                    model = if (partner.imageUrl != null) partner.imageUrl else imageUrl,
+                    placeholder = painterResource(id = R.drawable.placeholder_image), // Placeholder drawable
+                    error = painterResource(id = R.drawable.placeholder_image) // Handle errors with placeholder
+                ),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -491,3 +498,4 @@ fun PartnerCard(partner: Partner, onClick: () -> Unit) {
         }
     }
 }
+
