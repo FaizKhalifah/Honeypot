@@ -8,6 +8,7 @@ import com.praktikum.honeypot.ViewModel.HomeViewModel
 import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.ViewModel.ProductViewModel
 import com.praktikum.honeypot.ViewModel.ProfileViewModel
+import com.praktikum.honeypot.ViewModel.SalesViewModel
 
 class AppViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -24,6 +25,9 @@ class AppViewModelFactory(private val context: Context) : ViewModelProvider.Fact
             }
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
                 HomeViewModel(context) as T
+            }
+            modelClass.isAssignableFrom(SalesViewModel::class.java)->{
+                SalesViewModel(context) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
