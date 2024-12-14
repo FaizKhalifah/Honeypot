@@ -19,18 +19,6 @@ class SalesViewModel (private val context: Context) : ViewModel() {
         loadSalesData()
     }
 
-//    private fun loadProducts() {
-//        viewModelScope.launch {
-//            try {
-//                val productApiService = RetrofitClient.getProductApiService(context)
-//                val response = productApiService.getProducts()
-//                _products.value = response // Set product data from API
-//            } catch (e: Exception) {
-//                _products.value = emptyList() // Handle error
-//                Log.e("ProductViewModel", "Error loading products: ${e.message}")
-//            }
-//        }
-//    }
     private fun loadSalesData() {
         viewModelScope.launch {
             try {

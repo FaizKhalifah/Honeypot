@@ -1,6 +1,5 @@
 package com.praktikum.honeypot.Screen
 
-import android.window.SplashScreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,12 +15,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.praktikum.honeypot.Factory.AppViewModelFactory
@@ -41,7 +38,7 @@ import com.praktikum.honeypot.Screen.Product.ProductScreen
 import com.praktikum.honeypot.Screen.Profile.EditScreen
 import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen
 import com.praktikum.honeypot.Screen.Profile.ProfileScreen
-import com.praktikum.honeypot.Screen.Report.ReportScreen
+import com.praktikum.honeypot.Screen.Sales.SalesScreen
 import com.praktikum.honeypot.Util.PreferencesHelper
 import com.praktikum.honeypot.ViewModel.AppStateViewModel
 import com.praktikum.honeypot.ViewModel.AuthViewModel
@@ -49,6 +46,7 @@ import com.praktikum.honeypot.ViewModel.HomeViewModel
 import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.ViewModel.ProductViewModel
 import com.praktikum.honeypot.ViewModel.ProfileViewModel
+import com.praktikum.honeypot.ViewModel.SalesViewModel
 
 @Composable
 fun SplashScreen() {
@@ -99,6 +97,7 @@ fun MainScreen() {
     val partnerViewModel: PartnerViewModel = viewModel(factory = AppViewModelFactory(context))
     val homeViewModel: HomeViewModel = viewModel(factory = AppViewModelFactory(context))
     val profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory(context))
+    val salesViewModel : SalesViewModel = viewModel(factory = AppViewModelFactory(context))
     var currentRoute by remember { mutableStateOf("") }
 
     // Track the current route
@@ -293,7 +292,9 @@ fun MainScreen() {
                 }
 
                 // Report Screen
-                composable("report") { ReportScreen() }
+                composable("report") {
+                    SalesScreen()
+                }
 
                 composable(
                     route = "editScreen/{fieldType}/{fieldValue}",
