@@ -26,3 +26,10 @@ data class OverallTotal(
     val total_quantity: Int,
     val total_revenue: Int
 )
+
+// Class helper untuk UI
+data class SalesUIItem(
+    val name: String,
+    val quantity: Int,
+    val revenue: Int
+)

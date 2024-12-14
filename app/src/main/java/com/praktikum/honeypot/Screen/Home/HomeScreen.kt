@@ -3,12 +3,14 @@ package com.praktikum.honeypot.Screen.Home
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +31,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -62,6 +66,8 @@ fun HomeScreen(
     val products by homeViewModel.products.collectAsState()
     val partners by homeViewModel.partners.collectAsState()
     val ownerProfile by profileViewModel.profile.collectAsState()
+    val totalStock = products.sumOf { it.stock }
+    val totalProducts = products.size
 
     LazyColumn(
         modifier = Modifier
@@ -73,31 +79,170 @@ fun HomeScreen(
         // Header Section
         item {
             Column(
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                // Honeypot Logo and Welcome message as before
-                Image(
-                    painter = painterResource(id = R.drawable.honeypot_logo),
-                    contentDescription = "Honeypot Logo",
+                // Logo and welcome text in a separate column to keep left alignment
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.honeypot_logo),
+                        contentDescription = "Honeypot Logo",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = "Welcome, ${ownerProfile?.username ?: "User"}!",
+                        style = TextStyle(
+                            fontFamily = dmSansFontFamily,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.offset(y = -20.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Stats Box - now will be centered
+                Box(
                     modifier = Modifier
-                        .size(120.dp)
-                        .padding(bottom = 8.dp)
-                )
-                Text(
-                    text = "Welcome, ${ownerProfile?.username ?: "User"}!",
-                    style = TextStyle(
-                        fontFamily = dmSansFontFamily,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier.offset(y = -20.dp)
-                )
+                        .shadow(
+                            elevation = 10.dp,
+                            spotColor = Color(0x408A959E),
+                            ambientColor = Color(0x408A959E)
+                        )
+                        .width(360.dp)
+                        .height(80.dp)
+                        .background(
+                            color = Color(0xFF4F9084),
+                            shape = RoundedCornerShape(size = 20.dp)
+                        )
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Jenis Produk Section
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Jenis Produk",
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    fontFamily = dmSansFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFF8FAE5)
+                                ),
+                                modifier = Modifier
+                                    .width(76.dp)
+                                    .height(15.dp)
+                            )
+                            
+                            // Single horizontal line
+                            Box(
+                                modifier = Modifier
+                                    .alpha(0.4f)
+                                    .border(
+                                        width = 0.5.dp,
+                                        color = Color(0xFFFFFFFF)
+                                    )
+                                    .padding(0.5.dp)
+                                    .width(79.96877.dp)
+                                    .height(1.dp)
+                            )
+                            
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(top = 4.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.graph),
+                                    contentDescription = "Graph Icon",
+                                    modifier = Modifier
+                                        .width(24.dp)
+                                        .height(24.dp)
+                                )
+                                Text(
+                                    text = "$totalProducts",
+                                    style = TextStyle(
+                                        fontSize = 16.sp,
+                                        fontFamily = dmSansFontFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFF8FAE5)
+                                    ),
+                                    modifier = Modifier
+                                        .width(15.dp)
+                                        .height(19.dp)
+                                )
+                            }
+                        }
+
+                        // Vertical Divider
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(1.dp)
+                                .background(color = Color(0xFFF8FAE5).copy(alpha = 0.4f))
+                        )
+
+                        // Total Stock Section
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Total Stock",
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    fontFamily = dmSansFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFF8FAE5)
+                                ),
+                                modifier = Modifier
+                                    .width(65.dp)
+                                    .height(15.dp)
+                            )
+                            
+                            // Horizontal line
+                            Box(
+                                modifier = Modifier
+                                    .alpha(0.4f)
+                                    .border(
+                                        width = 0.5.dp,
+                                        color = Color(0xFFFFFFFF)
+                                    )
+                                    .padding(0.5.dp)
+                                    .width(79.96877.dp)
+                                    .height(1.dp)
+                            )
+                            
+                            Text(
+                                text = "$totalStock",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontFamily = dmSansFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFF8FAE5)
+                                ),
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .width(11.dp)
+                                    .height(19.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
-
-        // Product and Partner Sections...
 
         // Product Section
         item {
@@ -498,4 +643,3 @@ fun PartnerCard(partner: Partner, onClick: () -> Unit) {
         }
     }
 }
-
