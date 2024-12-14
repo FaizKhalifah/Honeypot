@@ -23,6 +23,10 @@ class ProductViewModel(private val context: Context) : ViewModel() {
     private val _selectedProduct = MutableStateFlow<Product?>(null)
     val selectedProduct: StateFlow<Product?> = _selectedProduct
 
+    // Add new state for total stock
+    private val _totalStock = MutableStateFlow(0)
+    val totalStock: StateFlow<Int> = _totalStock
+
     init {
         loadProducts()
     }
@@ -32,9 +36,15 @@ class ProductViewModel(private val context: Context) : ViewModel() {
             try {
                 val productApiService = RetrofitClient.getProductApiService(context)
                 val response = productApiService.getProducts()
-                _products.value = response // Set product data from API
+                Log.d("ProductViewModel", "Products received: ${response.size}")
+                response.forEach { product ->
+                    Log.d("ProductViewModel", "Product: ${product.name}, Stock: ${product.stock}")
+                }
+                _products.value = response
+                val total = response.sumOf { it.stock }
+                Log.d("ProductViewModel", "Total stock calculated: $total")
+                _totalStock.value = total
             } catch (e: Exception) {
-                _products.value = emptyList() // Handle error
                 Log.e("ProductViewModel", "Error loading products: ${e.message}")
             }
         }
