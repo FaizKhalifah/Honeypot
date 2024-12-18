@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -42,6 +43,7 @@ import com.praktikum.honeypot.Data.MonthlySalesUIItem
 import com.praktikum.honeypot.Data.SalesUIItem
 import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.R
+import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.ViewModel.ProductViewModel
 import com.praktikum.honeypot.ViewModel.SalesViewModel
 import java.text.NumberFormat
@@ -328,7 +330,9 @@ fun SearchAndFilterSection(
 }
 
 @Composable
-fun SalesScreen() {
+fun SalesScreen(
+    onNavigateToAddSales: (Int) -> Unit = {}
+) {
     val context = LocalContext.current
     val salesViewModel: SalesViewModel = viewModel(factory = AppViewModelFactory(context))
     val productViewModel: ProductViewModel = viewModel(factory = AppViewModelFactory(context))
@@ -338,221 +342,119 @@ fun SalesScreen() {
     val monthlySales by salesViewModel.monthlySales.collectAsState()
 
     // States for filtering and search
-    var filteredSales by remember { mutableStateOf(monthlySales) }
+    var filteredSales by remember { mutableStateOf(emptyList<MonthlySalesUIItem>()) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedMonth by remember { mutableStateOf<String?>(null) }
     var selectedYear by remember { mutableStateOf<String?>(null) }
     
-    // Effect to update filtered sales when monthlySales, searchQuery, or filters change
-    LaunchedEffect(monthlySales, searchQuery, selectedMonth, selectedYear) {
-        filteredSales = monthlySales.filter { monthData ->
-            // Apply month filter if selected
-            val monthMatches = selectedMonth?.let { month ->
-                monthData.month.contains(month)
-            } ?: true
+    // Add showPartnerDialog state
+    var showPartnerDialog by remember { mutableStateOf(false) }
+    val partnerViewModel: PartnerViewModel = viewModel(factory = AppViewModelFactory(context))
+    val partners by partnerViewModel.partners.collectAsState()
 
-            // Apply year filter if selected
-            val yearMatches = selectedYear?.let { year ->
-                monthData.month.endsWith(year)
-            } ?: true
+    // Load initial data
+    LaunchedEffect(Unit) {
+        salesViewModel.loadSalesData()
+        productViewModel.loadProducts() // Memastikan data produk dimuat
+    }
 
-            // Apply search query to partner names
-            val searchMatches = if (searchQuery.isNotEmpty()) {
-                monthData.partnerSales.any { 
-                    it.name.contains(searchQuery, ignoreCase = true)
-                }
-            } else true
+    // Effect to initialize and update filtered sales
+    LaunchedEffect(monthlySales) {
+        filteredSales = monthlySales
+    }
 
-            monthMatches && yearMatches && searchMatches
-        }.map { monthData ->
-            // Filter partners within each month if search query exists
-            if (searchQuery.isNotEmpty()) {
-                monthData.copy(
-                    partnerSales = monthData.partnerSales.filter {
-                        it.name.contains(searchQuery, ignoreCase = true)
-                    }
-                )
-            } else monthData
+    // Reset filters when leaving screen
+    DisposableEffect(Unit) {
+        onDispose {
+            searchQuery = ""
+            selectedMonth = null
+            selectedYear = null
         }
     }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp)
-            .offset(y = -40.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        // Header Section dengan Logo
-        item {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Logo dan welcome text
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.honeypot_logo),
-                        contentDescription = "Honeypot Logo",
-                        modifier = Modifier
-                            .size(120.dp)
-                            .padding(bottom = 8.dp)
-                    )
-                    Text(
-                        text = "Sales Report",
-                        style = TextStyle(
-                            fontFamily = dmSansFamily,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier.offset(y = -20.dp)
-                    )
-                }
-
-                // Stats Box
-                Box(
-                    modifier = Modifier
-                        .shadow(
-                            elevation = 10.dp,
-                            spotColor = Color(0x408A959E),
-                            ambientColor = Color(0x408A959E)
-                        )
-                        .width(360.dp)
-                        .height(80.dp)
-                        .background(
-                            color = Color(0xFF4F9084),
-                            shape = RoundedCornerShape(size = 20.dp)
-                        )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Jenis Produk Section
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Jenis Produk",
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontFamily = dmSansFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF8FAE5)
-                                ),
-                                modifier = Modifier
-                                    .width(76.dp)
-                                    .height(15.dp)
-                            )
-                            
-                            // Single horizontal line
-                            Box(
-                                modifier = Modifier
-                                    .alpha(0.4f)
-                                    .border(
-                                        width = 0.5.dp,
-                                        color = Color(0xFFFFFFFF)
-                                    )
-                                    .padding(0.5.dp)
-                                    .width(79.96877.dp)
-                                    .height(1.dp)
-                            )
-                            
-                            Row(
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(top = 4.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.graph),
-                                    contentDescription = "Graph Icon",
-                                    modifier = Modifier
-                                        .width(24.dp)
-                                        .height(24.dp)
-                                )
-                                Text(
-                                    text = "$totalProducts",
-                                    style = TextStyle(
-                                        fontSize = 16.sp,
-                                        fontFamily = dmSansFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFF8FAE5)
-                                    ),
-                                    modifier = Modifier
-                                        .width(15.dp)
-                                        .height(19.dp)
-                                )
-                            }
-                        }
-
-                        // Vertical Divider
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .width(1.dp)
-                                .background(color = Color(0xFFF8FAE5).copy(alpha = 0.4f))
-                        )
-
-// Total Stock Section
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Total Stock",
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontFamily = dmSansFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF8FAE5)
-                                ),
-                                modifier = Modifier
-                                    .width(65.dp)
-                                    .height(15.dp)
-                            )
-
-                            // Horizontal line
-                            Box(
-                                modifier = Modifier
-                                    .alpha(0.4f)
-                                    .border(
-                                        width = 0.5.dp,
-                                        color = Color(0xFFFFFFFF)
-                                    )
-                                    .padding(0.5.dp)
-                                    .width(79.96877.dp)
-                                    .height(1.99922.dp)
-                            )
-
-                            // Display Total Stock
-                            Text(
-                                text = "$totalStock",
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontFamily = dmSansFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF8FAE5)
-                                ),
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .width(11.dp)
-                                    .height(19.dp)
-                            )
-                        }
-                    }
-                }
-            }
+        // Logo Section with offset
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = (-35).dp) // Sesuaikan dengan HomeScreen
+                .height(140.dp) // Sesuaikan dengan HomeScreen
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.honeypot_logo),
+                contentDescription = "Honeypot Logo",
+                modifier = Modifier
+                    .size(120.dp) // Sesuaikan dengan HomeScreen
+                    .align(Alignment.CenterStart)
+                    .offset(x = (0).dp, y = (-20).dp), // Sesuaikan dengan HomeScreen
+                contentScale = ContentScale.Fit
+            )
         }
 
-        // Tab Row
-        item {
+        // Content Section
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = (-60).dp) // Sesuaikan dengan HomeScreen
+        ) {
+            Text(
+                text = "Sales Report",
+                style = TextStyle(
+                    fontFamily = dmSansFamily,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Stats Box
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF4F9084)),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Jenis Produk Section
+                    StatItem(
+                        title = "Jenis Produk",
+                        value = totalProducts.toString(),
+                        icon = R.drawable.graph
+                    )
+
+                    // Vertical Divider
+                    Divider(
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(1.dp)
+                            .background(Color.White.copy(alpha = 0.4f))
+                    )
+
+                    // Total Stock Section
+                    StatItem(
+                        title = "Total Stock",
+                        value = totalStock.toString(),
+                        icon = R.drawable.box
+                    )
+                }
+            }
+
+            // Tab Row and Content
             var selectedTab by remember { mutableStateOf(0) }
-            Column {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent,
@@ -570,21 +472,45 @@ fun SalesScreen() {
                     )
                 }
 
-                // Search and Filter Section below tabs
+                // Search and Filter Section with reduced vertical padding
                 SearchAndFilterSection(
                     searchQuery = searchQuery,
-                    onSearchChange = { searchQuery = it },
+                    onSearchChange = { 
+                        searchQuery = it
+                        // Update filtered sales when search changes
+                        filteredSales = if (it.isEmpty() && selectedMonth == null && selectedYear == null) {
+                            monthlySales
+                        } else {
+                            monthlySales.filter { monthData ->
+                                monthData.partnerSales.any { partner ->
+                                    partner.name.contains(it, ignoreCase = true)
+                                }
+                            }
+                        }
+                    },
                     onMonthYearSelected = { month, year ->
                         selectedMonth = month
                         selectedYear = year
+                        // Update filtered sales for month and year
+                        filteredSales = monthlySales.filter { monthData ->
+                            monthData.month.contains(month) && monthData.month.endsWith(year)
+                        }
                     },
                     onMonthSelected = { month ->
                         selectedMonth = month
                         selectedYear = null
+                        // Update filtered sales for month only
+                        filteredSales = monthlySales.filter { monthData ->
+                            monthData.month.contains(month)
+                        }
                     },
                     onYearSelected = { year ->
                         selectedMonth = null
                         selectedYear = year
+                        // Update filtered sales for year only
+                        filteredSales = monthlySales.filter { monthData ->
+                            monthData.month.endsWith(year)
+                        }
                     },
                     onResetFilter = {
                         selectedMonth = null
@@ -597,11 +523,117 @@ fun SalesScreen() {
                     selectedYear = selectedYear
                 )
 
-                when (selectedTab) {
-                    0 -> SimpleSalesContent(filteredSales)
-                    1 -> DetailedSalesContent(filteredSales)
+                // Content based on selected tab with reduced padding
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 4.dp)
+                ) {
+                    item {
+                        when (selectedTab) {
+                            0 -> SimpleSalesContent(filteredSales)
+                            1 -> DetailedSalesContent(filteredSales)
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    // Floating Action Button
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        FloatingActionButton(
+            onClick = { showPartnerDialog = true },
+            modifier = Modifier.padding(16.dp),
+            containerColor = Color(0xFF43766C)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.add_circle),
+                contentDescription = "Add Sales",
+                tint = Color.White
+            )
+        }
+    }
+
+    // Partner Selection Dialog
+    if (showPartnerDialog) {
+        AlertDialog(
+            onDismissRequest = { showPartnerDialog = false },
+            title = { Text("Pilih Partner") },
+            text = {
+                LazyColumn {
+                    items(partners) { partner ->
+                        Text(
+                            text = partner.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onNavigateToAddSales(partner.partner_id)
+                                    showPartnerDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPartnerDialog = false }) {
+                    Text("Batal")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun StatItem(
+    title: String,
+    value: String,
+    icon: Int
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontFamily = dmSansFamily,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        )
+        
+        Divider(
+            modifier = Modifier
+                .width(80.dp)
+                .padding(vertical = 4.dp),
+            color = Color.White.copy(alpha = 0.4f)
+        )
+        
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = value,
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontFamily = dmSansFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            )
         }
     }
 }
