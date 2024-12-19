@@ -31,7 +31,7 @@ class ProductViewModel(private val context: Context) : ViewModel() {
         loadProducts()
     }
 
-    private fun loadProducts() {
+    fun loadProducts() {
         viewModelScope.launch {
             try {
                 val productApiService = RetrofitClient.getProductApiService(context)

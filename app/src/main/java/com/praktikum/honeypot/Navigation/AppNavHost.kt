@@ -16,6 +16,7 @@ import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen
 import com.praktikum.honeypot.Screen.Profile.ProfileScreen
 import com.praktikum.honeypot.Screen.Auth.RegisterScreen
 import com.praktikum.honeypot.ViewModel.AppStateViewModel
+import com.praktikum.honeypot.Screen.Sales.SalesAddScreen
 
 @Composable
 fun AppNavHost(startDestination: String) {
@@ -63,6 +64,15 @@ fun AppNavHost(startDestination: String) {
         composable("editPasswordScreen") {
             println("Navigating to EditPasswordScreen")
             EditPasswordScreen(navController)
+        }
+
+        // Add new route
+        composable(
+            route = "sales_add/{partnerId}",
+            arguments = listOf(navArgument("partnerId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val partnerId = backStackEntry.arguments?.getInt("partnerId") ?: 0
+            SalesAddScreen(navController = navController, partnerId = partnerId)
         }
     }
 }

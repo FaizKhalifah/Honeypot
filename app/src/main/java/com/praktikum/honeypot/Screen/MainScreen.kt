@@ -1,10 +1,12 @@
 package com.praktikum.honeypot.Screen
 
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +40,7 @@ import com.praktikum.honeypot.Screen.Product.ProductScreen
 import com.praktikum.honeypot.Screen.Profile.EditScreen
 import com.praktikum.honeypot.Screen.Profile.EditPasswordScreen
 import com.praktikum.honeypot.Screen.Profile.ProfileScreen
+import com.praktikum.honeypot.Screen.Sales.SalesAddScreen
 import com.praktikum.honeypot.Screen.Sales.SalesScreen
 import com.praktikum.honeypot.Util.PreferencesHelper
 import com.praktikum.honeypot.ViewModel.AppStateViewModel
@@ -296,7 +299,11 @@ fun MainScreen() {
 
                 // Report Screen
                 composable("report") {
-                    SalesScreen()
+                    SalesScreen(
+                        onNavigateToAddSales = { partnerId -> 
+                            navController.navigate("sales_add/$partnerId")
+                        }
+                    )
                 }
 
                 composable(
@@ -312,6 +319,22 @@ fun MainScreen() {
                 }
                 composable("editPasswordScreen") {
                     EditPasswordScreen(navController)
+                }
+
+                composable(
+                    route = "sales_add/{partnerId}",
+                    arguments = listOf(navArgument("partnerId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        val partnerId = backStackEntry.arguments?.getInt("partnerId") ?: 0
+                        SalesAddScreen(
+                            navController = navController,
+                            partnerId = partnerId
+                        )
+                    } else {
+                        // Handle untuk versi Android yang lebih rendah
+                        Text("Fitur ini membutuhkan Android Oreo atau lebih tinggi")
+                    }
                 }
             }
         }
