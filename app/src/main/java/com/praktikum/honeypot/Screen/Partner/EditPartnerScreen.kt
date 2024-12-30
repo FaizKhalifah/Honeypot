@@ -197,7 +197,7 @@ fun EditPartnerScreen(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
+            Text(
                             text = "Stok hanya bisa ditambah di sini. Untuk mengurangi stok, silakan gunakan menu Report.",
                             style = TextStyle(
                                 fontFamily = dmSansFontFamily,
@@ -292,7 +292,7 @@ fun EditPartnerScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    OutlinedTextField(
+                        OutlinedTextField(
                                         value = stockInputs[stock.product_id] ?: "",
                                         onValueChange = { newValue ->
                                             validateAndUpdateStock(stock, newValue)
@@ -335,7 +335,7 @@ fun EditPartnerScreen(
                     }
                     Button(
                         onClick = { saveChanges() },
-                        modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43766C)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
