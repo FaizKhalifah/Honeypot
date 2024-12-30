@@ -124,121 +124,33 @@ fun HomeScreen(
                         )
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Jenis Produk Section
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Jenis Produk",
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontFamily = dmSansFontFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF8FAE5)
-                                ),
-                                modifier = Modifier
-                                    .width(76.dp)
-                                    .height(15.dp)
-                            )
-                            
-                            // Single horizontal line
-                            Box(
-                                modifier = Modifier
-                                    .alpha(0.4f)
-                                    .border(
-                                        width = 0.5.dp,
-                                        color = Color(0xFFFFFFFF)
-                                    )
-                                    .padding(0.5.dp)
-                                    .width(79.96877.dp)
-                                    .height(1.dp)
-                            )
-                            
-                            Row(
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(top = 4.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.graph),
-                                    contentDescription = "Graph Icon",
-                                    modifier = Modifier
-                                        .width(24.dp)
-                                        .height(24.dp)
-                                )
-                                Text(
-                                    text = "$totalProducts",
-                                    style = TextStyle(
-                                        fontSize = 16.sp,
-                                        fontFamily = dmSansFontFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFF8FAE5)
-                                    ),
-                                    modifier = Modifier
-                                        .width(15.dp)
-                                        .height(19.dp)
-                                )
-                            }
-                        }
+                        StatItem(
+                            title = "Jenis Produk",
+                            value = "$totalProducts",
+                            icon = R.drawable.graph
+                        )
 
                         // Vertical Divider
-                        Box(
+                        Divider(
                             modifier = Modifier
-                                .fillMaxHeight()
+                                .height(40.dp)
                                 .width(1.dp)
-                                .background(color = Color(0xFFF8FAE5).copy(alpha = 0.4f))
+                                .background(Color.White.copy(alpha = 0.4f))
                         )
 
                         // Total Stock Section
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Total Stock",
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontFamily = dmSansFontFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF8FAE5)
-                                ),
-                                modifier = Modifier
-                                    .width(65.dp)
-                                    .height(15.dp)
-                            )
-                            
-                            // Horizontal line
-                            Box(
-                                modifier = Modifier
-                                    .alpha(0.4f)
-                                    .border(
-                                        width = 0.5.dp,
-                                        color = Color(0xFFFFFFFF)
-                                    )
-                                    .padding(0.5.dp)
-                                    .width(79.96877.dp)
-                                    .height(1.dp)
-                            )
-                            
-                            Text(
-                                text = "$totalStock",
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontFamily = dmSansFontFamily,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF8FAE5)
-                                ),
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .width(11.dp)
-                                    .height(19.dp)
-                            )
-                        }
+                        StatItem(
+                            title = "Total Stock",
+                            value = "$totalStock",
+                            icon = R.drawable.box
+                        )
                     }
                 }
             }
@@ -286,6 +198,54 @@ fun HomeScreen(
     }
 }
 
+@Composable
+private fun StatItem(
+    title: String,
+    value: String,
+    icon: Int
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontFamily = dmSansFontFamily,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        )
+        
+        Divider(
+            modifier = Modifier
+                .width(80.dp)
+                .padding(vertical = 4.dp),
+            color = Color.White.copy(alpha = 0.4f)
+        )
+        
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = value,
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontFamily = dmSansFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            )
+        }
+    }
+}
 
 @Composable
 fun OverviewCardMerged(

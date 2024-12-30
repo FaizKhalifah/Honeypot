@@ -9,7 +9,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,20 +23,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import com.google.accompanist.permissions.*
+import coil.compose.rememberAsyncImagePainter
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.praktikum.honeypot.Data.Product
-import com.praktikum.honeypot.ViewModel.ProductViewModel
 import com.praktikum.honeypot.R
+import com.praktikum.honeypot.Screen.Home.dmSansFontFamily
 import com.praktikum.honeypot.Camera.CameraPreview
 import com.praktikum.honeypot.Util.BitmapUtils
+import com.praktikum.honeypot.ViewModel.ProductViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun AddProductScreen(
     viewModel: ProductViewModel,
@@ -48,143 +60,218 @@ fun AddProductScreen(
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
-    // Permission State for CAMERA
     val cameraPermissionState = rememberPermissionState(permission = android.Manifest.permission.CAMERA)
-
-    // Launcher for gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? ->
             uri?.let {
                 selectedImageUri = it
-                val file = BitmapUtils.uriToFile(context, it)
-                selectedImageFile = file
+                selectedImageFile = BitmapUtils.uriToFile(context, it)
             }
         }
     )
 
-    // Function to handle camera button click
     fun onTakePhotoClick() {
         when {
-            cameraPermissionState.status.isGranted -> {
-                // Permission is already granted, show the embedded camera
-                showCamera = true
-            }
+            cameraPermissionState.status.isGranted -> showCamera = true
             cameraPermissionState.status.shouldShowRationale -> {
-                // Show rationale and request permission
                 coroutineScope.launch {
                     Toast.makeText(context, "Camera permission is needed to take photos.", Toast.LENGTH_LONG).show()
                     cameraPermissionState.launchPermissionRequest()
                 }
             }
-            else -> {
-                // Directly request permission
-                cameraPermissionState.launchPermissionRequest()
-            }
+            else -> cameraPermissionState.launchPermissionRequest()
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        "Add Product",
+                        style = TextStyle(
+                            fontFamily = dmSansFontFamily,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.Default.ArrowBack, "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(scrollState)
         ) {
-            // Image Preview
-            Box(
+            // Image Section
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .clickable { onTakePhotoClick() },
+                    .padding(vertical = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAE5))
             ) {
-                if (selectedImageUri != null) {
-                    AsyncImage(
-                        model = selectedImageUri,
-                        contentDescription = "Selected Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.placeholder_image),
-                        contentDescription = "Placeholder Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                // Overlay camera icon
-                Image(
-                    painter = painterResource(id = R.drawable.camera),
-                    contentDescription = "Camera Icon",
+                Box(
                     modifier = Modifier
-                        .size(48.dp)
-                        .align(Alignment.Center)
-                )
+                        .fillMaxSize()
+                        .clickable { onTakePhotoClick() }
+                ) {
+                    if (selectedImageUri != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(selectedImageUri),
+                            contentDescription = "Selected Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.camera),
+                                contentDescription = "Add Photo",
+                                modifier = Modifier.size(48.dp),
+                                tint = Color(0xFF43766C)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Add Product Photo",
+                                style = TextStyle(
+                                    fontFamily = dmSansFontFamily,
+                                    color = Color(0xFF43766C)
+                                )
+                            )
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Buttons to choose image
+            // Image Source Buttons
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Take Photo Button
-                Button(onClick = { onTakePhotoClick() }) {
-                    Text("Take Photo")
+                OutlinedButton(
+                    onClick = { onTakePhotoClick() },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFF43766C)
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.camera),
+                        contentDescription = "Camera",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Camera")
                 }
-
-                // Select from Gallery Button
-                Button(onClick = { galleryLauncher.launch("image/*") }) {
-                    Text("Select from Gallery")
+                
+                OutlinedButton(
+                    onClick = { galleryLauncher.launch("image/*") },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFF43766C)
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.gallery),
+                        contentDescription = "Gallery",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Gallery")
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Input Fields
+            // Form Fields
             OutlinedTextField(
                 value = productId,
                 onValueChange = { productId = it },
-                label = { Text("Product Id") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                label = { Text("Product ID") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF43766C),
+                    focusedLabelColor = Color(0xFF43766C)
+                )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Product Name") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF43766C),
+                    focusedLabelColor = Color(0xFF43766C)
+                )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF43766C),
+                    focusedLabelColor = Color(0xFF43766C)
+                )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = stock,
                 onValueChange = { stock = it },
                 label = { Text("Stock") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF43766C),
+                    focusedLabelColor = Color(0xFF43766C)
+                )
             )
-            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = pricePerUnit,
                 onValueChange = { pricePerUnit = it },
                 label = { Text("Price Per Unit") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF43766C),
+                    focusedLabelColor = Color(0xFF43766C)
+                )
             )
-            Spacer(modifier = Modifier.height(16.dp))
 
-            // Add Product Button
+            // Add Button
             Button(
                 onClick = {
                     if (name.isBlank() || description.isBlank() || stock.isBlank() || pricePerUnit.isBlank()) {
@@ -198,10 +285,12 @@ fun AddProductScreen(
                         description = description,
                         stock = stock.toIntOrNull() ?: 0,
                         price_per_unit = pricePerUnit.toIntOrNull() ?: 0,
-                        image_url = null // Image URL will be set by the server
+                        image_url = null
                     )
 
-                    viewModel.addProduct(newProduct, selectedImageFile,
+                    viewModel.addProduct(
+                        newProduct,
+                        selectedImageFile,
                         onSuccess = {
                             Toast.makeText(context, "Product added successfully!", Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
@@ -211,29 +300,46 @@ fun AddProductScreen(
                         }
                     )
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF43766C)
+                )
             ) {
-                Text("Add Product")
+                Text(
+                    "Add Product",
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontFamily = dmSansFontFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
-        // Show Camera Preview as a full-screen overlay
+        // Camera Preview Overlay
         if (showCamera) {
-            CameraPreview(
-                onImageCaptured = { file ->
-                    selectedImageFile = file
-                    selectedImageUri = Uri.fromFile(file)
-                    showCamera = false
-                },
-                onError = { exc ->
-                    Toast.makeText(context, "Image capture failed: ${exc.message}", Toast.LENGTH_SHORT).show()
-                    showCamera = false
-                },
-                onClose = { showCamera = false },
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.8f)) // Optional: Dim the background
-            )
+                    .background(Color.Black)
+            ) {
+                CameraPreview(
+                    onImageCaptured = { file ->
+                        selectedImageFile = file
+                        selectedImageUri = Uri.fromFile(file)
+                        showCamera = false
+                    },
+                    onError = { exc ->
+                        Toast.makeText(context, "Failed to capture image: ${exc.message}", Toast.LENGTH_SHORT).show()
+                        showCamera = false
+                    },
+                    onClose = { showCamera = false }
+                )
+            }
         }
     }
 }
