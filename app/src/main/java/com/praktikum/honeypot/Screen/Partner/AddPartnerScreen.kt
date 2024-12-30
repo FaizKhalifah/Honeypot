@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,8 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.accompanist.permissions.*
@@ -26,11 +30,12 @@ import com.praktikum.honeypot.Data.Partner
 import com.praktikum.honeypot.ViewModel.PartnerViewModel
 import com.praktikum.honeypot.R
 import com.praktikum.honeypot.Camera.CameraPreview
+import com.praktikum.honeypot.Screen.Home.dmSansFontFamily
 import com.praktikum.honeypot.Util.BitmapUtils
 import kotlinx.coroutines.launch
 import java.io.File
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AddPartnerScreen(
     viewModel: PartnerViewModel,
@@ -45,11 +50,8 @@ fun AddPartnerScreen(
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-
-    // Permission State for CAMERA
     val cameraPermissionState = rememberPermissionState(permission = android.Manifest.permission.CAMERA)
 
-    // Launcher for gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? ->
@@ -61,22 +63,18 @@ fun AddPartnerScreen(
         }
     )
 
-    // Function to handle camera button click
     fun onTakePhotoClick() {
         when {
             cameraPermissionState.status.isGranted -> {
-                // Permission is already granted, show the embedded camera
                 showCamera = true
             }
             cameraPermissionState.status.shouldShowRationale -> {
-                // Show rationale and request permission
                 coroutineScope.launch {
                     Toast.makeText(context, "Camera permission is needed to take photos.", Toast.LENGTH_LONG).show()
                     cameraPermissionState.launchPermissionRequest()
                 }
             }
             else -> {
-                // Directly request permission
                 cameraPermissionState.launchPermissionRequest()
             }
         }
@@ -85,118 +83,224 @@ fun AddPartnerScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            // Image Preview
+            // Logo Section with offset
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .clickable { onTakePhotoClick() },
+                    .offset(y = (-35).dp)
+                    .height(140.dp)
             ) {
-                if (selectedImageUri != null) {
-                    AsyncImage(
-                        model = selectedImageUri,
-                        contentDescription = "Selected Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.placeholder_image),
-                        contentDescription = "Placeholder Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                // Overlay camera icon
                 Image(
-                    painter = painterResource(id = R.drawable.camera),
-                    contentDescription = "Camera Icon",
+                    painter = painterResource(id = R.drawable.honeypot_logo),
+                    contentDescription = "Honeypot Logo",
                     modifier = Modifier
-                        .size(48.dp)
-                        .align(Alignment.Center)
+                        .size(120.dp)
+                        .align(Alignment.CenterStart)
+                        .offset(x = (0).dp, y = (-10).dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Buttons to choose image
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            // Content Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .offset(y = (-60).dp)
             ) {
-                // Take Photo Button
-                Button(onClick = { onTakePhotoClick() }) {
-                    Text("Take Photo")
-                }
-
-                // Select from Gallery Button
-                Button(onClick = { galleryLauncher.launch("image/*") }) {
-                    Text("Select from Gallery")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Input Fields
-            OutlinedTextField(
-                value = partnerId,
-                onValueChange = { partnerId = it },
-                label = { Text("Partner Id") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Partner Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = address,
-                onValueChange = { address = it },
-                label = { Text("Address") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Add Partner Button
-            Button(
-                onClick = {
-                    if (name.isBlank() || address.isBlank()) {
-                        Toast.makeText(context, "All fields are required!", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-
-                    val newPartner = Partner(
-                        partner_id = partnerId.toIntOrNull() ?: 0,
-                        name = name,
-                        address = address,
-                        imageUrl = null // Image URL will be set by the server
+                // Back Button and Title
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.arrow_back),
+                        contentDescription = "Back",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { navController.popBackStack() }
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Tambah Partner",
+                        style = TextStyle(
+                            fontFamily = dmSansFontFamily,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
 
-                    viewModel.addPartner(newPartner, selectedImageFile,
-                        onSuccess = {
-                            Toast.makeText(context, "Partner added successfully!", Toast.LENGTH_SHORT).show()
-                            navController.popBackStack()
-                        },
-                        onError = { errorMessage ->
-                            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Image Preview Card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clickable { onTakePhotoClick() },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (selectedImageUri != null) {
+                            AsyncImage(
+                                model = selectedImageUri,
+                                contentDescription = "Selected Image",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.camera),
+                                    contentDescription = "Camera Icon",
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Tambah Foto Partner",
+                                    style = TextStyle(
+                                        fontFamily = dmSansFontFamily,
+                                        color = Color.Gray
+                                    )
+                                )
+                            }
                         }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Image Source Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { onTakePhotoClick() },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43766C)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "Ambil Foto",
+                            style = TextStyle(
+                                fontFamily = dmSansFontFamily,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                    Button(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43766C)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "Pilih Galeri",
+                            style = TextStyle(
+                                fontFamily = dmSansFontFamily,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Input Fields
+                OutlinedTextField(
+                    value = partnerId,
+                    onValueChange = { partnerId = it },
+                    label = { Text("Partner ID") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color(0xFF43766C),
+                        unfocusedBorderColor = Color(0xFF43766C).copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nama Partner") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color(0xFF43766C),
+                        unfocusedBorderColor = Color(0xFF43766C).copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text("Alamat") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color(0xFF43766C),
+                        unfocusedBorderColor = Color(0xFF43766C).copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Add Partner Button
+                Button(
+                    onClick = {
+                        if (name.isBlank() || address.isBlank()) {
+                            Toast.makeText(context, "Semua field harus diisi!", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+
+                        val newPartner = Partner(
+                            partner_id = partnerId.toIntOrNull() ?: 0,
+                            name = name,
+                            address = address,
+                            imageUrl = null
+                        )
+
+                        viewModel.addPartner(
+                            newPartner,
+                            selectedImageFile,
+                            onSuccess = {
+                                Toast.makeText(context, "Partner berhasil ditambahkan!", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
+                            },
+                            onError = { errorMessage ->
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43766C)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Tambah Partner",
+                        style = TextStyle(
+                            fontFamily = dmSansFontFamily,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Add Partner")
+                }
             }
         }
 
-        // Show Camera Preview as a full-screen overlay
+        // Camera Preview Overlay
         if (showCamera) {
             CameraPreview(
                 onImageCaptured = { file ->
@@ -205,13 +309,13 @@ fun AddPartnerScreen(
                     showCamera = false
                 },
                 onError = { exc ->
-                    Toast.makeText(context, "Image capture failed: ${exc.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Gagal mengambil foto: ${exc.message}", Toast.LENGTH_SHORT).show()
                     showCamera = false
                 },
                 onClose = { showCamera = false },
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.8f)) // Optional: Dim the background
+                    .background(Color.Black.copy(alpha = 0.8f))
             )
         }
     }
