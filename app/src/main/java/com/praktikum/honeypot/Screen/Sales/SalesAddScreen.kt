@@ -32,6 +32,7 @@ import com.praktikum.honeypot.ViewModel.RecordState
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.Instant
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -163,10 +164,24 @@ fun SalesAddScreen(
 
         // Date Picker Dialog
         if (showDatePicker) {
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = selectedDate
+                    .atStartOfDay(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli()
+            )
+            
             DatePickerDialog(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            selectedDate = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                        }
+                        showDatePicker = false
+                    }) {
                         Text("OK")
                     }
                 },
@@ -177,10 +192,7 @@ fun SalesAddScreen(
                 }
             ) {
                 DatePicker(
-                    state = rememberDatePickerState(
-                        initialSelectedDateMillis = selectedDate.atStartOfDay(ZoneId.systemDefault())
-                            .toInstant().toEpochMilli()
-                    ),
+                    state = datePickerState,
                     showModeToggle = false
                 )
             }

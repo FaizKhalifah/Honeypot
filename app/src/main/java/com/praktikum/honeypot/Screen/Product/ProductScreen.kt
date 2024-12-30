@@ -1,45 +1,43 @@
 package com.praktikum.honeypot.Screen.Product
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.praktikum.honeypot.Data.Product
-import com.praktikum.honeypot.ViewModel.ProductViewModel
 import androidx.compose.ui.res.painterResource
-import coil.compose.AsyncImage
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
+import com.praktikum.honeypot.Data.Product
 import com.praktikum.honeypot.Factory.AppViewModelFactory
 import com.praktikum.honeypot.R
+import com.praktikum.honeypot.Screen.Home.dmSansFontFamily
+import com.praktikum.honeypot.ViewModel.ProductViewModel
+import java.text.NumberFormat
+import java.util.*
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(
     onNavigateToAddProduct: () -> Unit,
@@ -48,71 +46,322 @@ fun ProductScreen(
     onNavigateToProductDetail: (Int) -> Unit
 ) {
     val context = LocalContext.current
-    val productViewModel: ProductViewModel = viewModel(
-        factory = AppViewModelFactory(context)
-    )
+    val productViewModel: ProductViewModel = viewModel(factory = AppViewModelFactory(context))
     val products by productViewModel.products.collectAsState()
-    val selectedProduct by productViewModel.selectedProduct.collectAsState()
+    val totalStock by productViewModel.totalStock.collectAsState()
+    val totalProducts = products.size
+    var searchQuery by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf<Product?>(null) }
+    var selectedProduct by remember { mutableStateOf<Product?>(null) }
 
-    // State for search bar
-    var searchText by remember { mutableStateOf("") }
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onNavigateToAddProduct() },
-                containerColor = Color.White,
-                contentColor = Color.White
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.add_circle),
-                    contentDescription = "Add Product"
-                )
-            }
-        }
-    ) { paddingValues ->
-        Box(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize() // Ensure the Box takes the full available space
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            Column(
+            // Logo Section with offset
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .offset(y = -90.dp) // Keeps the logo offset from top
+                    .fillMaxWidth()
+                    .offset(y = (-35).dp)
+                    .height(140.dp)
             ) {
-                // Logo positioned top-left with offset
                 Image(
                     painter = painterResource(id = R.drawable.honeypot_logo),
                     contentDescription = "Honeypot Logo",
                     modifier = Modifier
-                        .size(125.dp)
-                        .padding(start = 16.dp, top = 16.dp) // Offset logo from the top-left corner
+                        .size(120.dp)
+                        .align(Alignment.CenterStart)
+                        .offset(x = (0).dp, y = (-10).dp),
+                    contentScale = ContentScale.Fit
                 )
-
-                // Add search bar just below the logo
-                SearchBar(
-                    searchText = searchText,
-                    onSearchTextChange = { searchText = it }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp)) // Spacer between search and products
             }
 
-            // LazyColumn to display the product cards and fill remaining space
-            val filteredProducts = products.filter { product ->
-                product.name.contains(searchText, ignoreCase = true)
-            }
-
-            LazyColumn(
+            // Content Section
+            Column(
                 modifier = Modifier
-                    .padding(top = 150.dp) // Adjust to give space for logo and search bar
-                    .fillMaxSize() // Ensure this takes all the remaining space
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .offset(y = (-60).dp)
             ) {
-                items(filteredProducts) { product ->
-                    ProductCard(
-                        product = product,
-                        onClick = { onNavigateToProductDetail(product.product_id) }
+                Text(
+                    text = "Product Management",
+                    style = TextStyle(
+                        fontFamily = dmSansFontFamily,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                // Stats Box
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4F9084)),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Jenis Produk Section
+                        StatItem(
+                            title = "Jenis Produk",
+                            value = totalProducts.toString(),
+                            icon = R.drawable.graph
+                        )
+
+                        // Vertical Divider
+                        Divider(
+                            modifier = Modifier
+                                .height(40.dp)
+                                .width(1.dp)
+                                .background(Color.White.copy(alpha = 0.4f))
+                        )
+
+                        // Total Stock Section
+                        StatItem(
+                            title = "Total Stock",
+                            value = totalStock.toString(),
+                            icon = R.drawable.box
+                        )
+                    }
+                }
+
+                // Search Bar
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    placeholder = { Text("Cari Produk...") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color(0xFF43766C)
+                        )
+                    },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color(0xFF43766C),
+                        unfocusedBorderColor = Color(0xFF43766C).copy(alpha = 0.5f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                // Product List
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(
+                        products.filter { product ->
+                            product.name.contains(searchQuery, ignoreCase = true)
+                        }
+                    ) { product ->
+                        ProductListItem(
+                            product = product,
+                            onEditClick = { onNavigateToEditProduct(product) },
+                            onDeleteClick = { showDeleteDialog = product },
+                            onClick = { onNavigateToProductDetail(product.product_id) }
+                        )
+                    }
+                }
+            }
+        }
+
+        // FAB for adding new product
+        FloatingActionButton(
+            onClick = onNavigateToAddProduct,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            containerColor = Color(0xFF43766C)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.add_circle),
+                contentDescription = "Add Product",
+                tint = Color.White
+            )
+        }
+
+        // Delete Confirmation Dialog
+        if (showDeleteDialog != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = null },
+                title = { Text("Konfirmasi Hapus") },
+                text = { Text("Apakah Anda yakin ingin menghapus produk ${showDeleteDialog?.name}?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog?.let {
+                                onDeleteProduct(it.product_id)
+                            }
+                            showDeleteDialog = null
+                        }
+                    ) {
+                        Text("Hapus")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = null }) {
+                        Text("Batal")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatItem(
+    title: String,
+    value: String,
+    icon: Int
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontFamily = dmSansFontFamily,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        )
+        
+        Divider(
+            modifier = Modifier
+                .width(80.dp)
+                .padding(vertical = 4.dp),
+            color = Color.White.copy(alpha = 0.4f)
+        )
+        
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = value,
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontFamily = dmSansFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductListItem(
+    product: Product,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color(0xFF43766C)),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Product Image and Details
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Product Image
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.size(60.dp)
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            model = product.image_url ?: R.drawable.placeholder_image,
+                            error = painterResource(id = R.drawable.placeholder_image)
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                // Product Details
+                Column {
+                    Text(
+                        text = product.name,
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontFamily = dmSansFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF43766C)
+                        )
+                    )
+                    Text(
+                        text = formatRupiah(product.price_per_unit),
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontFamily = dmSansFontFamily,
+                            color = Color.Gray
+                        )
+                    )
+                    Text(
+                        text = "Stock: ${product.stock}",
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontFamily = dmSansFontFamily,
+                            color = Color.Gray
+                        )
+                    )
+                }
+            }
+
+            // Action Buttons
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onEditClick) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = Color(0xFF43766C)
+                    )
+                }
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color(0xFF43766C)
                     )
                 }
             }
@@ -120,108 +369,11 @@ fun ProductScreen(
     }
 }
 
-@Composable
-fun ProductCard(product: Product, onClick: () -> Unit) {
-    ElevatedCard(
-        onClick = onClick, // Click function
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = Modifier
-            .fillMaxWidth() // Full width for product card
-            .padding(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Row(modifier = Modifier.padding(16.dp)) {
-            // Product image
-            if (product.image_url != null) {
-                AsyncImage(
-                    model = product.image_url,
-                    contentDescription = "Product Image",
-                    modifier = Modifier
-                        .size(150.dp) // Larger size for image
-                        .padding(end = 16.dp),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Image(
-                    painter = painterResource(R.drawable.placeholder_image),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(150.dp) // Larger placeholder size
-                        .padding(end = 16.dp),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            // Product text information
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = product.name,
-                    color = Color.Black,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = product.description,
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                ) {
-                    // Price Column
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "Price",
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = "Rp ${product.price_per_unit}",
-                            color = Color.Black,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-
-                    // Stock Column
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "Stock",
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = "${product.stock}",
-                            color = Color.Black,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
-        }
-    }
+fun formatRupiah(amount: Int): String {
+    val format = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+    return format.format(amount.toLong())
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
-    androidx.compose.material3.TextField(
-        value = searchText,
-        onValueChange = onSearchTextChange,
-        placeholder = { Text(text = "Search product...") },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        colors = androidx.compose.material3.TextFieldDefaults.textFieldColors(
-            containerColor = Color.White
-        )
-    )
-}
 
 
 

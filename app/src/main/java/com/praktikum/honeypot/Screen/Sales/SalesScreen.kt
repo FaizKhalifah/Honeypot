@@ -277,7 +277,9 @@ fun SearchAndFilterSection(
                         label = { Text(selectedMonth) },
                         trailingIcon = {
                             IconButton(
-                                onClick = { onMonthSelected("") }
+                                onClick = { 
+                                    onMonthSelected("")
+                                }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
@@ -295,7 +297,9 @@ fun SearchAndFilterSection(
                         label = { Text(selectedYear) },
                         trailingIcon = {
                             IconButton(
-                                onClick = { onYearSelected("") }
+                                onClick = { 
+                                    onYearSelected("")
+                                }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
@@ -313,7 +317,9 @@ fun SearchAndFilterSection(
                         label = { Text("Search: $searchQuery") },
                         trailingIcon = {
                             IconButton(
-                                onClick = { onSearchChange("") }
+                                onClick = { 
+                                    onSearchChange("")
+                                }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
@@ -340,6 +346,8 @@ fun SalesScreen(
     val totalStock by productViewModel.totalStock.collectAsState()
     val totalProducts = products.size
     val monthlySales by salesViewModel.monthlySales.collectAsState()
+    val isLoading by salesViewModel.isLoading.collectAsState()
+    val error by salesViewModel.error.collectAsState()
 
     // States for filtering and search
     var filteredSales by remember { mutableStateOf(emptyList<MonthlySalesUIItem>()) }
@@ -352,202 +360,247 @@ fun SalesScreen(
     val partnerViewModel: PartnerViewModel = viewModel(factory = AppViewModelFactory(context))
     val partners by partnerViewModel.partners.collectAsState()
 
-    // Load initial data
+    // Load initial data and refresh when screen becomes active
     LaunchedEffect(Unit) {
         salesViewModel.loadSalesData()
-        productViewModel.loadProducts() // Memastikan data produk dimuat
+        productViewModel.loadProducts()
+        partnerViewModel.loadPartners()
     }
 
     // Effect to initialize and update filtered sales
-    LaunchedEffect(monthlySales) {
-        filteredSales = monthlySales
+    LaunchedEffect(monthlySales, searchQuery, selectedMonth, selectedYear) {
+        filteredSales = monthlySales.filter { monthData ->
+            // Apply month filter if selected
+            val monthMatches = selectedMonth?.let { month ->
+                monthData.month.contains(month)
+            } ?: true
+
+            // Apply year filter if selected
+            val yearMatches = selectedYear?.let { year ->
+                monthData.month.endsWith(year)
+            } ?: true
+
+            // Apply search query to partner names
+            val searchMatches = if (searchQuery.isNotEmpty()) {
+                monthData.partnerSales.any { partner -> 
+                    partner.name.equals(searchQuery, ignoreCase = true) ||
+                    partner.name.contains(searchQuery, ignoreCase = true)
+                }
+            } else true
+
+            monthMatches && yearMatches && searchMatches
+        }.map { monthData ->
+            // Filter partners within each month if search query exists
+            if (searchQuery.isNotEmpty()) {
+                monthData.copy(
+                    partnerSales = monthData.partnerSales.filter { partner ->
+                        partner.name.equals(searchQuery, ignoreCase = true) ||
+                        partner.name.contains(searchQuery, ignoreCase = true)
+                    }
+                )
+            } else monthData
+        }
     }
 
-    // Reset filters when leaving screen
+    // Reset filters and reload data when leaving screen
     DisposableEffect(Unit) {
         onDispose {
             searchQuery = ""
             selectedMonth = null
             selectedYear = null
+            filteredSales = emptyList()
+            salesViewModel.clearData()
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        // Logo Section with offset
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = (-35).dp) // Sesuaikan dengan HomeScreen
-                .height(140.dp) // Sesuaikan dengan HomeScreen
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.honeypot_logo),
-                contentDescription = "Honeypot Logo",
-                modifier = Modifier
-                    .size(120.dp) // Sesuaikan dengan HomeScreen
-                    .align(Alignment.CenterStart)
-                    .offset(x = (0).dp, y = (-20).dp), // Sesuaikan dengan HomeScreen
-                contentScale = ContentScale.Fit
-            )
-        }
-
-        // Content Section
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = (-60).dp) // Sesuaikan dengan HomeScreen
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            Text(
-                text = "Sales Report",
-                style = TextStyle(
-                    fontFamily = dmSansFamily,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Stats Box
-            Card(
+            // Logo Section with offset
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF4F9084)),
-                shape = RoundedCornerShape(20.dp)
+                    .offset(y = (-35).dp)
+                    .height(140.dp)
             ) {
-                Row(
+                Image(
+                    painter = painterResource(id = R.drawable.honeypot_logo),
+                    contentDescription = "Honeypot Logo",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Jenis Produk Section
-                    StatItem(
-                        title = "Jenis Produk",
-                        value = totalProducts.toString(),
-                        icon = R.drawable.graph
-                    )
-
-                    // Vertical Divider
-                    Divider(
-                        modifier = Modifier
-                            .height(40.dp)
-                            .width(1.dp)
-                            .background(Color.White.copy(alpha = 0.4f))
-                    )
-
-                    // Total Stock Section
-                    StatItem(
-                        title = "Total Stock",
-                        value = totalStock.toString(),
-                        icon = R.drawable.box
-                    )
-                }
+                        .size(120.dp)
+                        .align(Alignment.CenterStart)
+                        .offset(x = (0).dp, y = (-10).dp),
+                    contentScale = ContentScale.Fit
+                )
             }
 
-            // Tab Row and Content
-            var selectedTab by remember { mutableStateOf(0) }
+            // Content Section
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .offset(y = (-60).dp)
             ) {
-                TabRow(
-                    selectedTabIndex = selectedTab,
-                    containerColor = Color.Transparent,
-                    contentColor = Color(0xFF43766C)
-                ) {
-                    Tab(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        text = { Text("Sales") }
-                    )
-                    Tab(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        text = { Text("Details") }
-                    )
-                }
-
-                // Search and Filter Section with reduced vertical padding
-                SearchAndFilterSection(
-                    searchQuery = searchQuery,
-                    onSearchChange = { 
-                        searchQuery = it
-                        // Update filtered sales when search changes
-                        filteredSales = if (it.isEmpty() && selectedMonth == null && selectedYear == null) {
-                            monthlySales
-                        } else {
-                            monthlySales.filter { monthData ->
-                                monthData.partnerSales.any { partner ->
-                                    partner.name.contains(it, ignoreCase = true)
-                                }
-                            }
-                        }
-                    },
-                    onMonthYearSelected = { month, year ->
-                        selectedMonth = month
-                        selectedYear = year
-                        // Update filtered sales for month and year
-                        filteredSales = monthlySales.filter { monthData ->
-                            monthData.month.contains(month) && monthData.month.endsWith(year)
-                        }
-                    },
-                    onMonthSelected = { month ->
-                        selectedMonth = month
-                        selectedYear = null
-                        // Update filtered sales for month only
-                        filteredSales = monthlySales.filter { monthData ->
-                            monthData.month.contains(month)
-                        }
-                    },
-                    onYearSelected = { year ->
-                        selectedMonth = null
-                        selectedYear = year
-                        // Update filtered sales for year only
-                        filteredSales = monthlySales.filter { monthData ->
-                            monthData.month.endsWith(year)
-                        }
-                    },
-                    onResetFilter = {
-                        selectedMonth = null
-                        selectedYear = null
-                        searchQuery = ""
-                        filteredSales = monthlySales
-                    },
-                    monthlySales = monthlySales,
-                    selectedMonth = selectedMonth,
-                    selectedYear = selectedYear
+                Text(
+                    text = "Sales Report",
+                    style = TextStyle(
+                        fontFamily = dmSansFamily,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Content based on selected tab with reduced padding
-                LazyColumn(
+                // Stats Box
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(vertical = 4.dp)
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4F9084)),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
-                    item {
-                        when (selectedTab) {
-                            0 -> SimpleSalesContent(filteredSales)
-                            1 -> DetailedSalesContent(filteredSales)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Jenis Produk Section
+                        StatItem(
+                            title = "Jenis Produk",
+                            value = totalProducts.toString(),
+                            icon = R.drawable.graph
+                        )
+
+                        // Vertical Divider
+                        Divider(
+                            modifier = Modifier
+                                .height(40.dp)
+                                .width(1.dp)
+                                .background(Color.White.copy(alpha = 0.4f))
+                        )
+
+                        // Total Stock Section
+                        StatItem(
+                            title = "Total Stock",
+                            value = totalStock.toString(),
+                            icon = R.drawable.box
+                        )
+                    }
+                }
+
+                // Tab Row and Content
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    var selectedTab by remember { mutableStateOf(0) }
+                    
+                    TabRow(
+                        selectedTabIndex = selectedTab,
+                        containerColor = Color.Transparent,
+                        contentColor = Color(0xFF43766C)
+                    ) {
+                        Tab(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            text = { Text("Sales") }
+                        )
+                        Tab(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            text = { Text("Details") }
+                        )
+                    }
+
+                    // Search and Filter Section
+                    SearchAndFilterSection(
+                        searchQuery = searchQuery,
+                        onSearchChange = { 
+                            searchQuery = it
+                            // Update filtered sales when search changes
+                            filteredSales = if (it.isEmpty() && selectedMonth == null && selectedYear == null) {
+                                monthlySales
+                            } else {
+                                monthlySales.filter { monthData ->
+                                    monthData.partnerSales.any { partner ->
+                                        partner.name.contains(it, ignoreCase = true)
+                                    }
+                                }
+                            }
+                        },
+                        onMonthYearSelected = { month, year ->
+                            selectedMonth = month
+                            selectedYear = year
+                            // Update filtered sales for month and year
+                            filteredSales = monthlySales.filter { monthData ->
+                                monthData.month.contains(month) && monthData.month.endsWith(year)
+                            }
+                        },
+                        onMonthSelected = { month ->
+                            selectedMonth = month
+                            selectedYear = null
+                            // Update filtered sales for month only
+                            filteredSales = monthlySales.filter { monthData ->
+                                monthData.month.contains(month)
+                            }
+                        },
+                        onYearSelected = { year ->
+                            selectedMonth = null
+                            selectedYear = year
+                            // Update filtered sales for year only
+                            filteredSales = monthlySales.filter { monthData ->
+                                monthData.month.endsWith(year)
+                            }
+                        },
+                        onResetFilter = {
+                            selectedMonth = null
+                            selectedYear = null
+                            searchQuery = ""
+                            filteredSales = monthlySales
+                        },
+                        monthlySales = monthlySales,
+                        selectedMonth = selectedMonth,
+                        selectedYear = selectedYear
+                    )
+
+                    // Content based on selected tab
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(bottom = 80.dp)
+                        ) {
+                            items(filteredSales) { monthData ->
+                                when (selectedTab) {
+                                    0 -> SimpleSalesCard(
+                                        monthData = monthData,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    1 -> DetailedMonthlyCard(
+                                        monthData = monthData,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    // Floating Action Button
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomEnd
-    ) {
+        // FAB tetap di posisi yang sama
         FloatingActionButton(
             onClick = { showPartnerDialog = true },
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
             containerColor = Color(0xFF43766C)
         ) {
             Icon(
@@ -556,36 +609,61 @@ fun SalesScreen(
                 tint = Color.White
             )
         }
-    }
 
-    // Partner Selection Dialog
-    if (showPartnerDialog) {
-        AlertDialog(
-            onDismissRequest = { showPartnerDialog = false },
-            title = { Text("Pilih Partner") },
-            text = {
-                LazyColumn {
-                    items(partners) { partner ->
-                        Text(
-                            text = partner.name,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onNavigateToAddSales(partner.partner_id)
-                                    showPartnerDialog = false
-                                }
-                                .padding(vertical = 12.dp),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+        // Loading dan Error indicators tetap sama
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = Color(0xFF43766C)
+            )
+        }
+
+        // Error Message
+        error?.let { errorMessage ->
+            AlertDialog(
+                onDismissRequest = { salesViewModel.clearError() },
+                title = { Text("Error") },
+                text = { Text(errorMessage) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        salesViewModel.clearError()
+                        salesViewModel.loadSalesData()
+                    }) {
+                        Text("Retry")
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showPartnerDialog = false }) {
-                    Text("Batal")
+            )
+        }
+
+        // Partner Selection Dialog
+        if (showPartnerDialog) {
+            AlertDialog(
+                onDismissRequest = { showPartnerDialog = false },
+                title = { Text("Pilih Partner") },
+                text = {
+                    LazyColumn {
+                        items(partners) { partner ->
+                            Text(
+                                text = partner.name,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onNavigateToAddSales(partner.partner_id)
+                                        showPartnerDialog = false
+                                    }
+                                    .padding(vertical = 12.dp),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showPartnerDialog = false }) {
+                        Text("Batal")
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -651,10 +729,12 @@ fun SimpleSalesContent(salesItems: List<MonthlySalesUIItem>) {
 }
 
 @Composable
-fun SimpleSalesCard(monthData: MonthlySalesUIItem) {
+fun SimpleSalesCard(
+    monthData: MonthlySalesUIItem,
+    modifier: Modifier = Modifier
+) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, Color(0xFF43766C)),
@@ -734,12 +814,14 @@ fun DetailedSalesContent(monthlySales: List<MonthlySalesUIItem>) {
 }
 
 @Composable
-fun DetailedMonthlyCard(monthData: MonthlySalesUIItem) {
+fun DetailedMonthlyCard(
+    monthData: MonthlySalesUIItem,
+    modifier: Modifier = Modifier
+) {
     var expanded by remember { mutableStateOf(false) }
     
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, Color(0xFF43766C)),
@@ -789,7 +871,7 @@ fun DetailedMonthlyCard(monthData: MonthlySalesUIItem) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 0.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 // Total Penjualan

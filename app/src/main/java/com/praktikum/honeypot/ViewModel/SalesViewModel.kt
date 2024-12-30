@@ -37,11 +37,26 @@ class SalesViewModel(private val context: Context) : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    fun clearData() {
+        _monthlySales.value = emptyList()
+        _overallTotal.value = null
+        _availableProducts.value = emptyList()
+        _error.value = null
+        _isLoading.value = false
+        _recordState.value = RecordState.Idle
+    }
+
+    fun clearError() {
+        _error.value = null
+    }
+
     init {
         loadSalesData()
     }
 
     fun loadSalesData() {
+        if (_isLoading.value) return // Prevent multiple simultaneous loads
+        
         viewModelScope.launch {
             try {
                 _isLoading.value = true

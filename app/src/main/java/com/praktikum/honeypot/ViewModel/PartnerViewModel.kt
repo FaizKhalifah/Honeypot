@@ -28,7 +28,7 @@ class PartnerViewModel(private val context: Context) : ViewModel() {
         loadPartners()
     }
 
-    private fun loadPartners() {
+    fun loadPartners() {
         viewModelScope.launch {
             try {
                 val partnerApiService = RetrofitClient.getPartnerApiService(context)
