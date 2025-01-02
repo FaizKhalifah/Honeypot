@@ -6,6 +6,7 @@ data class Owner(
     val password: String,
     val full_name: String,
     val contact: String,
+    val profile_image_url: String?,
     val createdAt: String,
     val updatedAt: String
 )

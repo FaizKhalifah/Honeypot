@@ -154,7 +154,11 @@ fun RegisterScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = errorMessage,
+                                text = if (errorMessage.contains("Invalid username or password")) {
+                                    "Username atau password salah"
+                                } else {
+                                    errorMessage
+                                },
                                 style = TextStyle(
                                     fontFamily = dmSansFontFamily,
                                     fontSize = 14.sp,
