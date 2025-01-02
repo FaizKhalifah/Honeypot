@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -65,9 +66,8 @@ fun HomeScreen(
 ) {
     val products by homeViewModel.products.collectAsState()
     val partners by homeViewModel.partners.collectAsState()
-    val ownerProfile by profileViewModel.profile.collectAsState()
-    val totalStock = products.sumOf { it.stock }
-    val totalProducts = products.size
+    val profile by profileViewModel.profile.collectAsState()
+    val isLoading by homeViewModel.isLoading.collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -96,7 +96,7 @@ fun HomeScreen(
                             .padding(bottom = 8.dp)
                     )
                     Text(
-                        text = "Welcome, ${ownerProfile?.username ?: "User"}!",
+                        text = "Welcome, ${profile?.username ?: "User"}!",
                         style = TextStyle(
                             fontFamily = dmSansFontFamily,
                             fontSize = 24.sp,
@@ -108,20 +108,13 @@ fun HomeScreen(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Stats Box - now will be centered
-                Box(
+                // Stats Box
+                Card(
                     modifier = Modifier
-                        .shadow(
-                            elevation = 10.dp,
-                            spotColor = Color(0x408A959E),
-                            ambientColor = Color(0x408A959E)
-                        )
-                        .width(360.dp)
-                        .height(80.dp)
-                        .background(
-                            color = Color(0xFF4F9084),
-                            shape = RoundedCornerShape(size = 20.dp)
-                        )
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4F9084)),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -130,11 +123,11 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Jenis Produk Section
+                        // Total Product Section
                         StatItem(
-                            title = "Jenis Produk",
-                            value = "$totalProducts",
-                            icon = R.drawable.graph
+                            title = "Total Product",
+                            value = if (isLoading) "..." else products.size.toString(),
+                            icon = R.drawable.box
                         )
 
                         // Vertical Divider
@@ -145,11 +138,11 @@ fun HomeScreen(
                                 .background(Color.White.copy(alpha = 0.4f))
                         )
 
-                        // Total Stock Section
+                        // Total Partner Section
                         StatItem(
-                            title = "Total Stock",
-                            value = "$totalStock",
-                            icon = R.drawable.box
+                            title = "Total Partner",
+                            value = if (isLoading) "..." else partners.size.toString(),
+                            icon = R.drawable.location
                         )
                     }
                 }
@@ -165,13 +158,57 @@ fun HomeScreen(
             )
         }
         item {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(products.size) { index ->
-                    ProductCard(product = products[index], onClick = {
-                        navController.navigate("productDetail/${products[index].product_id}")
-                    })
+            if (isLoading) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF43766C))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Loading data...",
+                        style = TextStyle(
+                            fontFamily = dmSansFontFamily,
+                            color = Color(0xFF43766C)
+                        )
+                    )
+                }
+            } else if (products.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.box),
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = Color(0xFF43766C)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Belum ada data produk",
+                        style = TextStyle(
+                            fontFamily = dmSansFontFamily,
+                            fontSize = 16.sp,
+                            color = Color(0xFF43766C)
+                        )
+                    )
+                }
+            } else {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(products.size) { index ->
+                        ProductCard(product = products[index], onClick = {
+                            navController.navigate("productDetail/${products[index].product_id}")
+                        })
+                    }
                 }
             }
         }
@@ -185,13 +222,57 @@ fun HomeScreen(
             )
         }
         item {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(partners.size) { index ->
-                    PartnerCard(partner = partners[index], onClick = {
-                        navController.navigate("partnerDetail/${partners[index].partner_id}")
-                    })
+            if (isLoading) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF76453B))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Loading data...",
+                        style = TextStyle(
+                            fontFamily = dmSansFontFamily,
+                            color = Color(0xFF76453B)
+                        )
+                    )
+                }
+            } else if (partners.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.location),
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = Color(0xFF76453B)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Belum ada data partner",
+                        style = TextStyle(
+                            fontFamily = dmSansFontFamily,
+                            fontSize = 16.sp,
+                            color = Color(0xFF76453B)
+                        )
+                    )
+                }
+            } else {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(partners.size) { index ->
+                        PartnerCard(partner = partners[index], onClick = {
+                            navController.navigate("partnerDetail/${partners[index].partner_id}")
+                        })
+                    }
                 }
             }
         }

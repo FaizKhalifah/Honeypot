@@ -20,9 +20,23 @@ class HomeViewModel(context: Context) : ViewModel() {
     private val _partners = MutableStateFlow<List<Partner>>(emptyList())
     val partners: StateFlow<List<Partner>> get() = _partners
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     init {
-        loadProducts()
-        loadPartners()
+        loadData()
+    }
+
+    private fun loadData() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                loadProducts()
+                loadPartners()
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     private fun loadProducts() {

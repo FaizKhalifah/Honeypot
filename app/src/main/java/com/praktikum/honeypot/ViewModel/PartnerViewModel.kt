@@ -23,6 +23,8 @@ class PartnerViewModel(private val context: Context) : ViewModel() {
     val partners: StateFlow<List<Partner>> = _partners
     private val _selectedPartner = MutableStateFlow<Partner?>(null)
     val selectedPartner: StateFlow<Partner?> = _selectedPartner
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
         loadPartners()
@@ -31,11 +33,15 @@ class PartnerViewModel(private val context: Context) : ViewModel() {
     fun loadPartners() {
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 val partnerApiService = RetrofitClient.getPartnerApiService(context)
                 val response = partnerApiService.getPartner()
-                _partners.value = response
+                _partners.value = response ?: emptyList()
             } catch (e: Exception) {
-                _partners.value = emptyList() // Tangani error
+                _partners.value = emptyList()
+                Log.e("PartnerViewModel", "Error loading partners: ${e.message}")
+            } finally {
+                _isLoading.value = false
             }
         }
     }

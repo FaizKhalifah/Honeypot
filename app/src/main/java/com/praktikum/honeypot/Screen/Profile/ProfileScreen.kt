@@ -130,6 +130,7 @@ fun ProfileScreen(navController: NavController, appStateViewModel: AppStateViewM
     val preferencesHelper = PreferencesHelper(context)
     val profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory(context))
     val profile = profileViewModel.profile.collectAsState()
+    val isLoading by profileViewModel.isLoading.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     
     var showCamera by remember { mutableStateOf(false) }
@@ -270,80 +271,122 @@ fun ProfileScreen(navController: NavController, appStateViewModel: AppStateViewM
                 .background(Color.Gray, CircleShape)
                 .clickable { showImageSourceDialog = true }
         ) {
-            AsyncImage(
-                model = profile.value?.profile_image_url ?: R.drawable.placeholder_image,
-                contentDescription = "Profile Picture",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                error = painterResource(id = R.drawable.placeholder_image)
-            )
-            // Camera icon overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.camera),
-                    contentDescription = "Edit Photo",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = Color(0xFF43766C),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            } else {
+                AsyncImage(
+                    model = profile.value?.profile_image_url ?: R.drawable.placeholder_image,
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(id = R.drawable.placeholder_image)
                 )
+                // Camera icon overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.camera),
+                        contentDescription = "Edit Photo",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Owner's Name and Username
-        profile.value?.let {
-            Text(
-                text = it.full_name,
-                fontFamily = dmSansFont,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = it.username,
-                fontFamily = dmSansFont,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.Gray
-            )
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFF43766C))
+            }
+        } else {
+            profile.value?.let {
+                Text(
+                    text = it.full_name,
+                    fontFamily = dmSansFont,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = it.username,
+                    fontFamily = dmSansFont,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Profile Details
-        profile.value?.let {
-            ProfileDetailItem(
-                label = "Full Name",
-                value = it.full_name,
-                fontFamily = dmSansFont,
-                onClick = { navController.navigate("editScreen/fullname/${it.full_name}") }
-            )
-            ProfileDetailItem(
-                label = "Username",
-                value = it.username,
-                fontFamily = dmSansFont,
-                onClick = { navController.navigate("editScreen/username/${it.username}") }
-            )
-            ProfileDetailItem(
-                label = "Contact",
-                value = it.contact,
-                fontFamily = dmSansFont,
-                onClick = { navController.navigate("editScreen/contact/${it.contact}") }
-            )
-            ProfileDetailItem(
-                label = "Password",
-                value = "*********",
-                fontFamily = dmSansFont,
-                onClick = {
-                    navController.navigate("editPasswordScreen")
+        if (isLoading) {
+            repeat(4) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(84.dp)
+                        .background(Color(0xFF43766C), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
-            )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        } else {
+            profile.value?.let {
+                ProfileDetailItem(
+                    label = "Full Name",
+                    value = it.full_name,
+                    fontFamily = dmSansFont,
+                    onClick = { navController.navigate("editScreen/fullname/${it.full_name}") }
+                )
+                ProfileDetailItem(
+                    label = "Username",
+                    value = it.username,
+                    fontFamily = dmSansFont,
+                    onClick = { navController.navigate("editScreen/username/${it.username}") }
+                )
+                ProfileDetailItem(
+                    label = "Contact",
+                    value = it.contact,
+                    fontFamily = dmSansFont,
+                    onClick = { navController.navigate("editScreen/contact/${it.contact}") }
+                )
+                ProfileDetailItem(
+                    label = "Password",
+                    value = "*********",
+                    fontFamily = dmSansFont,
+                    onClick = {
+                        navController.navigate("editPasswordScreen")
+                    }
+                )
+            }
         }
 
         Spacer(modifier = Modifier.weight(1f))
