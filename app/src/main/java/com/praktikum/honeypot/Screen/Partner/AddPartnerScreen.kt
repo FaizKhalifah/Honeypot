@@ -8,8 +8,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,7 +43,6 @@ fun AddPartnerScreen(
     viewModel: PartnerViewModel,
     navController: NavController
 ) {
-    var partnerId by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -86,33 +87,16 @@ fun AddPartnerScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            // Logo Section with offset
+            // Logo and Back Button Section
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .offset(y = (-35).dp)
-                    .height(140.dp)
+                    .height(80.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.honeypot_logo),
-                    contentDescription = "Honeypot Logo",
-                    modifier = Modifier
-                        .size(120.dp)
-                        .align(Alignment.CenterStart)
-                        .offset(x = (0).dp, y = (-10).dp)
-                )
-            }
-
-            // Content Section
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .offset(y = (-60).dp)
-            ) {
-                // Back Button and Title
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
@@ -132,8 +116,15 @@ fun AddPartnerScreen(
                         )
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            // Scrollable Content
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Image Preview Card
                 Card(
@@ -217,19 +208,6 @@ fun AddPartnerScreen(
 
                 // Input Fields
                 OutlinedTextField(
-                    value = partnerId,
-                    onValueChange = { partnerId = it },
-                    label = { Text("Partner ID") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color(0xFF43766C),
-                        unfocusedBorderColor = Color(0xFF43766C).copy(alpha = 0.5f)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nama Partner") },
@@ -253,50 +231,51 @@ fun AddPartnerScreen(
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(32.dp))
+            }
 
-                // Add Partner Button
-                Button(
-                    onClick = {
-                        if (name.isBlank() || address.isBlank()) {
-                            Toast.makeText(context, "Semua field harus diisi!", Toast.LENGTH_SHORT).show()
-                            return@Button
-                        }
+            // Add Partner Button - Fixed at bottom
+            Button(
+                onClick = {
+                    if (name.isBlank() || address.isBlank()) {
+                        Toast.makeText(context, "Semua field harus diisi!", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
-                        val newPartner = Partner(
-                            partner_id = partnerId.toIntOrNull() ?: 0,
-                            name = name,
-                            address = address,
-                            imageUrl = null
-                        )
-
-                        viewModel.addPartner(
-                            newPartner,
-                            selectedImageFile,
-                            onSuccess = {
-                                Toast.makeText(context, "Partner berhasil ditambahkan!", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
-                            },
-                            onError = { errorMessage ->
-                                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43766C)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = "Tambah Partner",
-                        style = TextStyle(
-                            fontFamily = dmSansFontFamily,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier.padding(vertical = 8.dp)
+                    val newPartner = Partner(
+                        partner_id = 0, // This will be ignored by the API
+                        name = name,
+                        address = address,
+                        imageUrl = null,
+                        PartnerStocks = emptyList()
                     )
-                }
+
+                    viewModel.addPartner(
+                        newPartner,
+                        selectedImageFile,
+                        onSuccess = {
+                            Toast.makeText(context, "Partner berhasil ditambahkan!", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        },
+                        onError = { errorMessage ->
+                            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF43766C)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Tambah Partner",
+                    style = TextStyle(
+                        fontFamily = dmSansFontFamily,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
             }
         }
 

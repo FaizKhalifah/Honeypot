@@ -573,20 +573,45 @@ fun SalesScreen(
                             .fillMaxSize()
                             .weight(1f)
                     ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = 80.dp)
-                        ) {
-                            items(filteredSales) { monthData ->
-                                when (selectedTab) {
-                                    0 -> SimpleSalesCard(
-                                        monthData = monthData,
-                                        modifier = Modifier.fillMaxWidth()
+                        if (filteredSales.isEmpty() && !isLoading) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.box),
+                                    contentDescription = "Empty Box",
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .padding(bottom = 8.dp),
+                                    alpha = 0.5f
+                                )
+                                Text(
+                                    text = "Belum ada data, silahkan klik tombol + dibawah",
+                                    style = TextStyle(
+                                        fontSize = 16.sp,
+                                        fontFamily = dmSansFamily,
+                                        color = Color.Gray
                                     )
-                                    1 -> DetailedMonthlyCard(
-                                        monthData = monthData,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = 80.dp)
+                            ) {
+                                items(filteredSales) { monthData ->
+                                    when (selectedTab) {
+                                        0 -> SimpleSalesCard(
+                                            monthData = monthData,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        1 -> DetailedMonthlyCard(
+                                            monthData = monthData,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -43,6 +43,7 @@ fun PartnerScreen(
     val context = LocalContext.current
     val partnerViewModel: PartnerViewModel = viewModel(factory = AppViewModelFactory(context))
     val partners by partnerViewModel.partners.collectAsState()
+    val isLoading by partnerViewModel.isLoading.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var showDeleteDialog by remember { mutableStateOf<Partner?>(null) }
 
@@ -95,34 +96,52 @@ fun PartnerScreen(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF4F9084)),
                     shape = RoundedCornerShape(20.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Total Partner Section
-                        StatItem(
-                            title = "Total Partner",
-                            value = partners.size.toString(),
-                            icon = R.drawable.location
-                        )
-
-                        // Vertical Divider
-                        Divider(
+                    if (isLoading) {
+                        Row(
                             modifier = Modifier
-                                .height(40.dp)
-                                .width(1.dp)
-                                .background(Color.White.copy(alpha = 0.4f))
-                        )
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            LoadingStatItem()
+                            
+                            Divider(
+                                modifier = Modifier
+                                    .height(40.dp)
+                                    .width(1.dp)
+                                    .background(Color.White.copy(alpha = 0.4f))
+                            )
 
-                        // Total Produk Section
-                        StatItem(
-                            title = "Total Produk",
-                            value = partners.sumOf { it.PartnerStocks.size }.toString(),
-                            icon = R.drawable.box
-                        )
+                            LoadingStatItem()
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            StatItem(
+                                title = "Total Partner",
+                                value = partners.size.toString(),
+                                icon = R.drawable.location
+                            )
+
+                            Divider(
+                                modifier = Modifier
+                                    .height(40.dp)
+                                    .width(1.dp)
+                                    .background(Color.White.copy(alpha = 0.4f))
+                            )
+
+                            StatItem(
+                                title = "Total Produk",
+                                value = partners.sumOf { it.PartnerStocks.size }.toString(),
+                                icon = R.drawable.box
+                            )
+                        }
                     }
                 }
 
@@ -149,22 +168,88 @@ fun PartnerScreen(
                 )
 
                 // Partner List
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    items(
-                        partners.filter { partner ->
+                Box(modifier = Modifier.weight(1f)) {
+                    if (isLoading) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF43766C))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Loading partners...",
+                                style = TextStyle(
+                                    fontFamily = dmSansFontFamily,
+                                    color = Color(0xFF43766C)
+                                )
+                            )
+                        }
+                    } else {
+                        val filteredPartners = partners.filter { partner ->
                             partner.name.contains(searchQuery, ignoreCase = true)
                         }
-                    ) { partner ->
-                        PartnerListItem(
-                            partner = partner,
-                            onEditClick = { onNavigateToEditPartner(partner) },
-                            onDeleteClick = { showDeleteDialog = partner },
-                            onClick = { navController.navigate("partnerDetail/${partner.partner_id}") }
-                        )
+
+                        if (partners.isEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.location),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = Color(0xFF43766C)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    "Belum ada data, silahkan klik tombol + dibawah",
+                                    style = TextStyle(
+                                        fontFamily = dmSansFontFamily,
+                                        fontSize = 16.sp,
+                                        color = Color(0xFF43766C)
+                                    )
+                                )
+                            }
+                        } else if (filteredPartners.isEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.location),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = Color(0xFF43766C)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    "No partners found",
+                                    style = TextStyle(
+                                        fontFamily = dmSansFontFamily,
+                                        fontSize = 16.sp,
+                                        color = Color(0xFF43766C)
+                                    )
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(bottom = 80.dp)
+                            ) {
+                                items(filteredPartners) { partner ->
+                                    PartnerListItem(
+                                        partner = partner,
+                                        onEditClick = { onNavigateToEditPartner(partner) },
+                                        onDeleteClick = { showDeleteDialog = partner },
+                                        onClick = { navController.navigate("partnerDetail/${partner.partner_id}") }
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -358,5 +443,28 @@ fun PartnerListItem(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun LoadingStatItem() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(24.dp),
+            color = Color.White,
+            strokeWidth = 2.dp
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Loading...",
+            style = TextStyle(
+                fontFamily = dmSansFontFamily,
+                fontSize = 12.sp,
+                color = Color.White
+            )
+        )
     }
 }

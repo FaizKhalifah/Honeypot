@@ -27,6 +27,8 @@ class ProfileViewModel(private val context: Context) : ViewModel() {
     private val preferencesHelper = PreferencesHelper(context)
     private val _profile = MutableStateFlow<Owner?>(null)
     val profile: StateFlow<Owner?> = _profile
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
         fetchProfile()
@@ -34,6 +36,7 @@ class ProfileViewModel(private val context: Context) : ViewModel() {
 
     fun fetchProfile() {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val response = profileApiService.getProfile().awaitResponse()
                 if (response.isSuccessful) {
@@ -43,6 +46,8 @@ class ProfileViewModel(private val context: Context) : ViewModel() {
                 }
             } catch (e: Exception) {
                 _profile.value = null
+            } finally {
+                _isLoading.value = false
             }
         }
     }

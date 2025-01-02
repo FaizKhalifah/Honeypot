@@ -22,6 +22,8 @@ class ProductViewModel(private val context: Context) : ViewModel() {
     val products: StateFlow<List<Product>> = _products
     private val _selectedProduct = MutableStateFlow<Product?>(null)
     val selectedProduct: StateFlow<Product?> = _selectedProduct
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     // Add new state for total stock
     private val _totalStock = MutableStateFlow(0)
@@ -34,6 +36,7 @@ class ProductViewModel(private val context: Context) : ViewModel() {
     fun loadProducts() {
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 val productApiService = RetrofitClient.getProductApiService(context)
                 val response = productApiService.getProducts()
                 Log.d("ProductViewModel", "Products received: ${response.size}")
@@ -46,6 +49,10 @@ class ProductViewModel(private val context: Context) : ViewModel() {
                 _totalStock.value = total
             } catch (e: Exception) {
                 Log.e("ProductViewModel", "Error loading products: ${e.message}")
+                _products.value = emptyList()
+                _totalStock.value = 0
+            } finally {
+                _isLoading.value = false
             }
         }
     }

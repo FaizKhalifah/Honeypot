@@ -1,5 +1,6 @@
 package com.praktikum.honeypot.Screen.Product
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,10 +50,10 @@ fun ProductScreen(
     val productViewModel: ProductViewModel = viewModel(factory = AppViewModelFactory(context))
     val products by productViewModel.products.collectAsState()
     val totalStock by productViewModel.totalStock.collectAsState()
+    val isLoading by productViewModel.isLoading.collectAsState()
     val totalProducts = products.size
     var searchQuery by remember { mutableStateOf("") }
     var showDeleteDialog by remember { mutableStateOf<Product?>(null) }
-    var selectedProduct by remember { mutableStateOf<Product?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -110,12 +111,20 @@ fun ProductScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Jenis Produk Section
-                        StatItem(
-                            title = "Jenis Produk",
-                            value = totalProducts.toString(),
-                            icon = R.drawable.graph
-                        )
+                        if (isLoading) {
+                            // Loading state
+                            LoadingStatItem(
+                                title = "Jenis Produk",
+                                icon = R.drawable.graph
+                            )
+                        } else {
+                            // Loaded state
+                            StatItem(
+                                title = "Jenis Produk",
+                                value = totalProducts.toString(),
+                                icon = R.drawable.graph
+                            )
+                        }
 
                         // Vertical Divider
                         Divider(
@@ -125,12 +134,20 @@ fun ProductScreen(
                                 .background(Color.White.copy(alpha = 0.4f))
                         )
 
-                        // Total Stock Section
-                        StatItem(
-                            title = "Total Stock",
-                            value = totalStock.toString(),
-                            icon = R.drawable.box
-                        )
+                        if (isLoading) {
+                            // Loading state
+                            LoadingStatItem(
+                                title = "Total Stock",
+                                icon = R.drawable.box
+                            )
+                        } else {
+                            // Loaded state
+                            StatItem(
+                                title = "Total Stock",
+                                value = totalStock.toString(),
+                                icon = R.drawable.box
+                            )
+                        }
                     }
                 }
 
@@ -156,23 +173,49 @@ fun ProductScreen(
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                // Product List
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    items(
-                        products.filter { product ->
-                            product.name.contains(searchQuery, ignoreCase = true)
+                // Product List with Loading and Empty State
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF43766C))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Loading data...",
+                                style = TextStyle(
+                                    fontFamily = dmSansFontFamily,
+                                    color = Color(0xFF43766C)
+                                )
+                            )
                         }
-                    ) { product ->
-                        ProductListItem(
-                            product = product,
-                            onEditClick = { onNavigateToEditProduct(product) },
-                            onDeleteClick = { showDeleteDialog = product },
-                            onClick = { onNavigateToProductDetail(product.product_id) }
-                        )
+                    }
+                } else if (products.isEmpty()) {
+                    EmptyProductState()
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        items(
+                            products.filter { product ->
+                                product.name.contains(searchQuery, ignoreCase = true)
+                            }
+                        ) { product ->
+                            ProductListItem(
+                                product = product,
+                                onEditClick = { onNavigateToEditProduct(product) },
+                                onDeleteClick = { showDeleteDialog = product },
+                                onClick = { onNavigateToProductDetail(product.product_id) }
+                            )
+                        }
                     }
                 }
             }
@@ -372,6 +415,97 @@ fun ProductListItem(
 fun formatRupiah(amount: Int): String {
     val format = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
     return format.format(amount.toLong())
+}
+
+@Composable
+fun LoadingStatItem(
+    title: String,
+    icon: Int
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "loading")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.7f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "loading"
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            style = TextStyle(
+                fontSize = 12.sp,
+                fontFamily = dmSansFontFamily,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        )
+        
+        Divider(
+            modifier = Modifier
+                .width(80.dp)
+                .padding(vertical = 4.dp),
+            color = Color.White.copy(alpha = 0.4f)
+        )
+        
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(20.dp)
+                    .background(
+                        Color.White.copy(alpha = alpha),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+fun EmptyProductState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.box),
+                contentDescription = "Empty Box",
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(bottom = 8.dp),
+                alpha = 0.5f
+            )
+            Text(
+                text = "Belum ada data, silahkan klik tombol + dibawah",
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontFamily = dmSansFontFamily,
+                    color = Color.Gray
+                )
+            )
+        }
+    }
 }
 
 
