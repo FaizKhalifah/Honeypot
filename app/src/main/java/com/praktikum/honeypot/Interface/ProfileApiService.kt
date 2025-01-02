@@ -1,25 +1,31 @@
 package com.praktikum.honeypot.Interface
 
 import com.praktikum.honeypot.Data.Owner
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
+import retrofit2.http.*
 
 data class ApiResponse(
-    val message: String // Add this to capture the API response message
+    val message: String
 )
 
 interface ProfileApiService {
     @GET("api/owner/profile")
     fun getProfile(): Call<Owner>
 
+    @Multipart
     @PUT("api/owner/profile")
-    fun updateProfile(@Body updateData: Map<String, String>): Call<Void>
+    fun updateProfile(
+        @Part("username") username: RequestBody?,
+        @Part("full_name") fullName: RequestBody?,
+        @Part("contact") contact: RequestBody?,
+        @Part profile_image: MultipartBody.Part?
+    ): Call<ApiResponse>
 
     @PUT("api/owner/change-password")
     fun changePassword(@Body passwordData: Map<String, String>): Call<ApiResponse>
-    @POST("api/owner/logout") // Using POST method for logout as per your API
+
+    @POST("api/owner/logout")
     fun logout(): Call<Void>
 }

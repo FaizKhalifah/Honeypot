@@ -37,7 +37,11 @@ class AuthViewModel(private val context: Context) : ViewModel() {
                         onError("Access token or refresh token not found in response")
                     }
                 } else {
-                    onError("Login failed: ${response.code()}")
+                    if (response.code() == 400) {
+                        onError("Invalid username or password")
+                    } else {
+                        onError("Login failed: ${response.code()}")
+                    }
                 }
             }
 
