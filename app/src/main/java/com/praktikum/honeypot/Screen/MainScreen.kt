@@ -150,13 +150,16 @@ fun MainScreen() {
 
                 composable("login") {
                     LoginScreen(
-                        onNavigateToRegister = { navController.navigate("register") },
+                        onNavigateToRegister = {
+                            navController.navigate("register") {
+                                // Prevent multiple copies of the register screen
+                                popUpTo("login") { inclusive = false }
+                            }
+                        },
                         onLoginSuccess = {
-                            appStateViewModel.logIn()  // Set login state to true
+                            appStateViewModel.logIn()
                             navController.navigate("home") {
-                                popUpTo("login") {
-                                    inclusive = true
-                                } // Pop the login screen from the stack
+                                popUpTo("login") { inclusive = true }
                             }
                         }
                     )
@@ -164,11 +167,10 @@ fun MainScreen() {
 
                 composable("register") {
                     RegisterScreen(
-                        onNavigateToMain = {
-                            navController.navigate("home") {
-                                popUpTo("login") {
-                                    inclusive = true
-                                }
+                        onNavigateToLogin = {
+                            navController.navigate("login") {
+                                // Prevent multiple copies of the login screen
+                                popUpTo("register") { inclusive = true }
                             }
                         }
                     )

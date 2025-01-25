@@ -44,7 +44,11 @@ fun AppNavHost(startDestination: String) {
         // Register Screen
         composable("register") {
             RegisterScreen(
-                onNavigateToMain = { navController.navigate("main") { popUpTo("login") { inclusive = true } } }
+                onNavigateToLogin = { 
+                    navController.navigate("login") {
+                        popUpTo("register") { inclusive = true }
+                    }
+                }
             )
         }
         // Edit Screen with dynamic arguments
